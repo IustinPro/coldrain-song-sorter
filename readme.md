@@ -1,11 +1,13 @@
-# sakura gakuin sort /bmsg/ edition
+# Coldrain Sorter
 
-http://sakurasort.github.io/
+A fork of Sakura Gakuin Sorter.
 
-add new members in js/fnc_data_v2.js and images in img
+Steps to Use:
+Simply download the file as a zip and open up the BM html file.
 
+Fair Warning this sorter has 100+ songs and needs 400+ battles, this will take a very long time!
 
 ### to do
 
-* add extended universe
-* match new site design http://www.sakuragakuin.jp/ (probably cant be bothered)
+* get website domain and server
+* fix image not loading
