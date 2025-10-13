@@ -53,7 +53,6 @@ var ary_CharacterData = [
 // Until The End
 [1, "House Of Cards", [1,0,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_ute"],
 [1, "Until The End", [1,0,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_ute"],
-[1, "New Dawn", [1,0,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_nd"], // Added Here to Spare another var
 
 
 // Optimize
@@ -199,5 +198,6 @@ var ary_CharacterData = [
 
 // Other
 [1, "Been so Long", [0,0,0,0,0,0,0,0,0,0,0,0,0,1], "crsong/cr_1"],
-
+[1, "New Dawn", [0,0,0,0,0,0,0,0,0,0,0,0,0,1], "crsong/cr_nd"],
+  
 ];
