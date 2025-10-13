@@ -196,7 +196,6 @@ var ary_CharacterData = [
 [1, "I Know", [0,0,0,0,0,0,0,0,0,0,0,0,1,0], "crsong/cr_8.jpg"],
 
 // Other
-[1, "Been so Long", [0,0,0,0,0,0,0,0,0,0,0,0,0,1], "crsong/cr_1.jpg"],
 [1, "New Dawn", [0,0,0,0,0,0,0,0,0,0,0,0,0,1], "crsong/cr_nd.jpg"],
   
 ];
