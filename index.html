@@ -1,90 +1,297 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
-		<meta http-equiv="pragma" content="no-cache">
-		<meta http-equiv="Cache-Control" content="no-cache">
-		<meta name="author" content="kama">
-		<title>coldrain Song Sort</title>
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-		<script type="text/javascript" src="js/mod_k-factory.js"></script>
-		<script type="text/javascript" src="js/fnc_main_v3.js"></script>
-		<script type="text/javascript" src="js/bm/fnc_data_v2.js"></script>
-		<script type="text/javascript" src="js/bm/op.js"></script>
-		<script type="text/javascript" src="js/bm/src.js"></script>
-		<link rel="stylesheet" type="text/css" href="css/kcs_style.css">
-		<link rel="stylesheet" type="text/css" href="css/style-bm.css">
-    <link rel="shortcut icon" href="img/favicon.ico" />
-	</head>
+<head>
+<meta charset="UTF-8">
+<title>coldrain Song Sort</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<body onload="startup()">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="js/mod_k-factory.js"></script>
+<script src="js/fnc_main_v3.js"></script>
+<script src="js/bm/fnc_data_v2.js"></script>
+<script src="js/bm/op.js"></script>
+<script src="js/bm/src.js"></script>
 
-	  <div id="menubar">
-        <div class="menu-item menu-link" id="menu-restart"><p>Restart</p></div>
-        <div class="menu-item"><p>Battle Nr. <span id="lblCount">-</span></p></div>
-        <div class="menu-item"><p><span id="lblProgress">0</span>% sorted</p></div>
-        <a href="https://github.com/IustinPro/coldrain-song-sorter">
-          <div class="menu-item menu-link menu-right"><p>Github</p></div>
-        </a>
-	    <a href="https://coldrain.jp/">
-          <div class="menu-item menu-link menu-right"><p>Homepage</p></div>
-        </a>
-        <a href="index.html">
-          <div class="menu-item menu-link menu-right"><p>Forked From</p></div>
-        </a>
-	  </div>
+<style>
+/* ---------------- Body & Animated Gradient ---------------- */
+body {
+  margin: 0;
+  font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  color: #f5f5f5;
+  background: linear-gradient(-45deg, #00132a, #002466, #3a0000, #3a3a00, #003399, #001f4d);
+  background-size: 600% 600%;
+  animation: gradientShift 40s ease infinite;
+}
 
-		<div align="center">
-			<table id="mainTable">
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-				<thead>
-					<tr>
-						<td colspan="3" class="tb_header"><br><br><br></td>
-					</tr>
-				</thead>
+/* ---------------- Menubar ---------------- */
+#menubar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(15,15,40,0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  z-index: 100;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
 
-				<tbody>
-					<tr>
-						<td id="fldLeft" onclick="fnc_Sort(-1);" rowspan="2"><img src="img/bm.png"></td>
-						<td style="border: 0px; width: 7px;" rowspan="2"></td>
-						<td id="fldMiddleT" onclick="fnc_Sort(0);"><p>coldrain Song Sort</p>
-							<p></p></td>
-						<td style="border: 0px; width: 7px;" rowspan="2"></td>
-						<td id="fldRight" onclick="fnc_Sort(1);" rowspan="2"><img src="img/bm.png"></td>
-					</tr>
-					<tr>
-						<td id="fldMiddleB" onclick="fnc_Undo();">Click to start!</td>
-					</tr>
-				</tbody>
+#menubar:hover {
+  background: rgba(15,15,40,0.75);
+  border-bottom-color: rgba(255,200,150,0.4);
+}
 
-				<tfoot>
-					<tr>
-						<td colspan="3">
-							<div align="center">
-								<br>
-								<input id="optImage" checked="checked" type="checkbox">
-								<span class="tb_header">Display images while sorting.</span>
-							</div>
-						</td>
-					</tr>
-				</tfoot>
+.menu-item {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-left: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.2s ease;
+}
 
-			</table>
-		</div><br>
+#menu-restart { border-left: none; }
 
-		<table id="optTable" align="center" width="450"></table><br>
+.menu-link { cursor: pointer; color: #fff; text-decoration: none; transition: all 0.2s; }
+.menu-link:hover { color: #ffd780; transform: scale(1.05); }
 
-		<div id="ranTable" width="640px" class="tb" style="display:none;" align="center">
-			<div>
-				<form>
-					<input id="btn-rawtext" value="Raw Text Results" onclick="OpenWnd()" type="button">
-				</form>
-			</div>
-		</div>
+/* ---------------- Table & Fields ---------------- */
+#mainTable {
+  border-collapse: collapse;
+  margin: 100px auto 20px auto;
+  text-align: center;
+}
 
-		<div class="style4" id="resultField" style="text-align:center;"><br></div>
+#mainTable td {
+  vertical-align: middle;
+  text-align: center;
+  border: none !important;
+  outline: none !important;
+  padding: 0;
+}
 
-	</body>
+#fldLeft, #fldRight {
+  width: 260px;
+  height: 260px;
+  border-radius: 12px;
+  background: rgba(15,15,40,0.5);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#fldLeft:hover, #fldRight:hover {
+  background: rgba(15,15,40,0.65);
+  box-shadow: 0 8px 24px rgba(255,200,0,0.25), 0 6px 20px rgba(255,50,50,0.25);
+  transform: translateY(-2px);
+}
+
+#fldLeft img, #fldRight img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  outline: none;
+  border: none;
+}
+
+/* ---------------- Middle Fields ---------------- */
+#fldMiddleT, #fldMiddleB {
+  width: 270px;
+  border-radius: 12px;
+  background: rgba(15,15,40,0.5);
+  backdrop-filter: blur(12px);
+  padding: 12px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#fldMiddleT:hover, #fldMiddleB:hover {
+  background: rgba(15,15,40,0.65);
+  box-shadow: 0 8px 24px rgba(255,200,0,0.25), 0 6px 20px rgba(255,50,50,0.25);
+  transform: translateY(-2px);
+}
+
+/* ---------------- Song Names ---------------- */
+.songName {
+  font-size: 16px;
+  color: #fff;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ---------------- Buttons ---------------- */
+#btn-rawtext, .album-btn {
+  cursor: pointer;
+  background: rgba(15,15,40,0.5);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+#btn-rawtext:hover, .album-btn:hover {
+  background: rgba(15,15,40,0.65);
+  box-shadow: 0 8px 24px rgba(255,200,0,0.25), 0 6px 20px rgba(255,50,50,0.25);
+  transform: translateY(-2px);
+}
+
+/* ---------------- Checkbox ---------------- */
+.checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.6);
+  border-radius: 4px;
+  background-color: rgba(255,255,255,0.05);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked {
+  background: rgba(255,200,0,0.5);
+  border-color: #ffc000;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 10px;
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ---------------- Result Table Styling ---------------- */
+#resultField, #optTable {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow-x: auto;
+  word-wrap: break-word;
+}
+
+#resultField table, #optTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#resultField table td, #optTable td {
+  padding: 6px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ---------------- Links ---------------- */
+a { color: #fff; text-decoration: none; transition: all 0.2s; }
+a:hover { color: #ffd780; }
+
+</style>
+</head>
+
+<body onload="startup()">
+
+<!-- Menubar -->
+<div id="menubar">
+  <div class="menu-item menu-link" id="menu-restart"><p>Restart</p></div>
+  <div class="menu-item"><p>Battle Nr. <span id="lblCount">-</span></p></div>
+  <div class="menu-item"><p><span id="lblProgress">0</span>% sorted</p></div>
+  <a href="https://github.com/IustinPro/coldrain-song-sorter">
+    <div class="menu-item menu-link menu-right"><p>Github</p></div>
+  </a>
+  <a href="https://coldrain.jp/">
+    <div class="menu-item menu-link menu-right"><p>coldrain Website</p></div>
+  </a>
+  <a href="https://sakurasort.github.io/">
+    <div class="menu-item menu-link menu-right"><p>Forked From</p></div>
+  </a>
+</div>
+
+<!-- Main Table -->
+<div align="center">
+  <table id="mainTable">
+    <tbody>
+      <tr>
+        <td id="fldLeft" onclick="fnc_Sort(-1);">
+          <img src="img/bm.png" alt="Left Album">
+          <div class="songName" id="songLeft"></div>
+        </td>
+        <td style="width: 60px;"></td>
+        <td>
+          <div id="fldMiddleT" onclick="fnc_Sort(0);">coldrain Song Sort</div>
+          <div id="fldMiddleB" onclick="fnc_Undo();">Click to start!</div>
+        </td>
+        <td style="width: 60px;"></td>
+        <td id="fldRight" onclick="fnc_Sort(1);">
+          <img src="img/bm.png" alt="Right Album">
+          <div class="songName" id="songRight"></div>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="5">
+          <div align="center">
+            <br>
+            <label class="checkbox-wrapper">
+              <input id="optImage" type="checkbox" checked>
+              Display images while sorting.
+            </label>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- Optional Table -->
+<table id="optTable" align="center" width="450"></table><br>
+
+<!-- Raw Text Results -->
+<div id="ranTable" style="display:none;" align="center">
+  <form>
+    <input id="btn-rawtext" value="Raw Text Results" onclick="OpenWnd()" type="button">
+  </form>
+</div>
+
+<!-- Results Field -->
+<div class="style4" id="resultField" style="text-align:center;"><br></div>
+
+</body>
 </html>
