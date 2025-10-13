@@ -52,7 +52,6 @@ var ary_TitleData = [
 var ary_CharacterData = [
 // Until The End
 [1, "House Of Cards", [1,0,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_ute.jpg"],
-[1, "Until The End", [1,0,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_ute.jpg"],
 
 
 // Optimize
