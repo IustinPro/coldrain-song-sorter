@@ -10,4 +10,4 @@ Fair Warning this sorter has 100+ songs and needs 400+ battles, this will take a
 ### to do
 
 * get website domain and server
-* fix image not loading
+* change appearance
