@@ -14,5 +14,4 @@ Fair Warning this sorter has 100+ songs and needs 400+ battles (if not more), th
 * get website domain and server to store data
 * fix red stuck on hover
 * make album select look better
-* fix mobile
 * make all images same size in results
