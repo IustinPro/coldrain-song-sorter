@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>coldrain Song Sort</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Force desktop mode on mobile -->
+<meta name="viewport" content="width=1024">
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="js/mod_k-factory.js"></script>
@@ -22,6 +23,10 @@ body {
   background: linear-gradient(-45deg, #00132a, #002466, #3a0000, #3a3a00, #003399, #001f4d);
   background-size: 600% 600%;
   animation: gradientShift 40s ease infinite;
+  
+  /* Force desktop width and allow horizontal scroll */
+  overflow-x: auto;
+  min-width: 1024px;
 }
 
 @keyframes gradientShift {
@@ -74,6 +79,7 @@ body {
   border-collapse: collapse;
   margin: 100px auto 20px auto;
   text-align: center;
+  min-width: 1024px; /* force desktop width */
 }
 
 #mainTable td {
@@ -204,6 +210,7 @@ body {
   margin: 0 auto;
   overflow-x: auto;
   word-wrap: break-word;
+  min-width: 1024px; /* force desktop width */
 }
 
 #resultField table, #optTable {
