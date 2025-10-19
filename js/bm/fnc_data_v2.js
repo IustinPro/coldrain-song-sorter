@@ -161,6 +161,7 @@ var ary_CharacterData = [
 [1, "Aware and Awake", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
 [1, "Voiceless", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
 [1, "Chasing Dreams", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
+[1, "Carry On", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
 
 // The Enemy Inside
 [1, "To Be Alive", [0,0,0,0,0,0,0,0,0,0,1,0,0,0], "crsong/cr_tei.jpg"],
