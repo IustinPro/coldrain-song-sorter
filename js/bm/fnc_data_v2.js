@@ -58,6 +58,8 @@ var ary_CharacterData = [
 [1, "FREE FALL", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
 [1, "INCOMPLETE", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
 [1, "CHASING SHADOWS", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
+[1, "OPTIMIZE", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
+[1, "DIGITOLL", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
 
 // Through Clarity
 [1, "No Escape", [0,0,1,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_tc.jpg"],
@@ -162,6 +164,8 @@ var ary_CharacterData = [
 [1, "Voiceless", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
 [1, "Chasing Dreams", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
 [1, "Carry On", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
+[1, "Falling Forever", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
+[1, "Next to You", [0,0,0,0,0,0,0,0,0,1,0,0,0,0], "crsong/cr_tr.jpg"],
 
 // The Enemy Inside
 [1, "To Be Alive", [0,0,0,0,0,0,0,0,0,0,1,0,0,0], "crsong/cr_tei.jpg"],
