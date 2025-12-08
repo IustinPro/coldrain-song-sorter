@@ -39,6 +39,10 @@ var int_Status = 0;
 var sID = 'GaGprog';
 var iGM = 100;
 
+// Multi-level undo stack
+var undo_stack = new Array();
+var undo_index = -1;
+
 var back_ary_SortData = new Array();
 var back_ary_EqualData = new Array();
 var back_ary_RecordData = new Array();
@@ -113,25 +117,66 @@ function startup() {
    // Append directly to the checkbox-list (inside the grid)
    checkboxList.appendChild(new_label);
 
+   // Add keyboard event listener
+   document.addEventListener('keydown', handleKeyPress);
 
    if (!bln_ProgessBar) fCG(sID, iGM, iGM);
+}
+
+function chgFlag(int_id) {
+   var obj_Check = gID('optSelect' + int_id);
+   if (!obj_Check.disabled) {
+      obj_Check.checked = (obj_Check.checked) ? false :true;
+      checkAlbumWarning();
+   }
 }
 
 function chgAll() {
    for (i=0; i<ary_TitleData.length; i++) {
       gID('optSelect' + i).checked = gID('optSelect_all').checked;
    }
+   checkAlbumWarning();
 }
 
-// *****************************************************************************
-// * chgFlag
-// * タイトル名がクリックされてもチェックボックスを変更する。
-function chgFlag(int_id) {
-   var obj_Check = gID('optSelect' + int_id);
-   if (!obj_Check.disabled) {
-      obj_Check.checked = (obj_Check.checked) ? false :true;
+function checkAlbumWarning() {
+   var checkedCount = 0;
+   for (i=0; i<ary_TitleData.length; i++) {
+      if (gID('optSelect' + i).checked) {
+         checkedCount++;
+      }
+   }
+   
+   var warningEl = gID('albumWarning');
+   if (checkedCount >= 5) {
+      if (!warningEl) {
+         warningEl = cE('div');
+         warningEl.id = 'albumWarning';
+         sC(warningEl, 'album-warning');
+         warningEl.appendChild(cT('⚠ Sorting this many albums may take a long time'));
+         gID('optTable').parentNode.insertBefore(warningEl, gID('optTable'));
+      }
+   } else {
+      if (warningEl) {
+         warningEl.parentNode.removeChild(warningEl);
+      }
    }
 }
+
+function toggleControlsMenu() {
+   var menu = gID('controls-menu');
+   if (menu) {
+      menu.classList.toggle('hidden');
+   }
+}
+
+// Close controls menu when clicking outside
+document.addEventListener('click', function(event) {
+   var menu = gID('controls-menu');
+   var tab = gID('controls-tab-btn');
+   if (menu && tab && !menu.contains(event.target) && !tab.contains(event.target)) {
+      menu.classList.add('hidden');
+   }
+});
 
 // *****************************************************************************
 // * Initialize
@@ -211,7 +256,28 @@ function init(){
    int_Status    = 1;
 
    gID('fldMiddleT').innerHTML = str_CenterT;
-   gID('fldMiddleB').innerHTML = str_CenterB;
+   
+   // Replace the "Click to start!" text with undo/redo buttons
+   var middleB = gID('fldMiddleB');
+   middleB.innerHTML = '';
+   
+   var undoBtn = cE('button');
+   undoBtn.className = 'middle-btn';
+   undoBtn.id = 'btn-undo-middle';
+   undoBtn.title = 'Undo (Ctrl+Z)';
+   undoBtn.onclick = function() { multiUndo(); };
+   undoBtn.appendChild(cT('Undo'));
+   middleB.appendChild(undoBtn);
+   
+   var redoBtn = cE('button');
+   redoBtn.className = 'middle-btn';
+   redoBtn.id = 'btn-redo-middle';
+   redoBtn.title = 'Redo (Ctrl+Y)';
+   redoBtn.onclick = function() { multiRedo(); };
+   redoBtn.appendChild(cT('Redo'));
+   middleB.appendChild(redoBtn);
+   
+   updateUndoUI();
 
    fnc_ShowData();
 }
@@ -271,8 +337,6 @@ function imginit() {
    gID("lbl_imgMax").innerHTML = int_ImgMax;
 }
 
-// Undo previous choice (
-
 function fnc_Undo() {
    if (int_Status == 0) {
       fnc_Sort(0);
@@ -298,6 +362,107 @@ function fnc_Undo() {
 	int_Status = (int_LeftList < 0) ? 2 : 1;
 
    fnc_ShowData();
+   }
+}
+
+function pushUndoState() {
+   undo_index++;
+   if (undo_index < undo_stack.length) {
+      undo_stack.length = undo_index;
+   }
+   
+   undo_stack[undo_index] = {
+      ary_SortData: ary_SortData.slice(0),
+      ary_RecordData: ary_RecordData.slice(0),
+      ary_EqualData: ary_EqualData.slice(0),
+      ary_ParentData: ary_ParentData.slice(0),
+      int_RecordID: int_RecordID,
+      int_Completed: int_Completed,
+      int_Count: int_Count,
+      int_Total: int_Total,
+      int_RightList: int_RightList,
+      int_RightID: int_RightID,
+      int_LeftList: int_LeftList,
+      int_LeftID: int_LeftID,
+      int_Status: int_Status
+   };
+   
+   updateUndoUI();
+}
+
+function multiUndo() {
+   if (undo_index > 0) {
+      undo_index--;
+      var state = undo_stack[undo_index];
+      
+      ary_SortData = state.ary_SortData.slice(0);
+      ary_RecordData = state.ary_RecordData.slice(0);
+      ary_EqualData = state.ary_EqualData.slice(0);
+      ary_ParentData = state.ary_ParentData.slice(0);
+      int_RecordID = state.int_RecordID;
+      int_Completed = state.int_Completed;
+      int_Count = state.int_Count;
+      int_Total = state.int_Total;
+      int_RightList = state.int_RightList;
+      int_RightID = state.int_RightID;
+      int_LeftList = state.int_LeftList;
+      int_LeftID = state.int_LeftID;
+      int_Status = state.int_Status;
+      
+      updateUndoUI();
+      fnc_ShowData();
+   }
+}
+
+function multiRedo() {
+   if (undo_index < undo_stack.length - 1) {
+      undo_index++;
+      var state = undo_stack[undo_index];
+      
+      ary_SortData = state.ary_SortData.slice(0);
+      ary_RecordData = state.ary_RecordData.slice(0);
+      ary_EqualData = state.ary_EqualData.slice(0);
+      ary_ParentData = state.ary_ParentData.slice(0);
+      int_RecordID = state.int_RecordID;
+      int_Completed = state.int_Completed;
+      int_Count = state.int_Count;
+      int_Total = state.int_Total;
+      int_RightList = state.int_RightList;
+      int_RightID = state.int_RightID;
+      int_LeftList = state.int_LeftList;
+      int_LeftID = state.int_LeftID;
+      int_Status = state.int_Status;
+      
+      updateUndoUI();
+      fnc_ShowData();
+   }
+}
+
+function updateUndoUI() {
+   var undoBtn = gID('btn-undo');
+   var redoBtn = gID('btn-redo');
+   if (undoBtn) undoBtn.disabled = (undo_index <= 0);
+   if (redoBtn) redoBtn.disabled = (undo_index >= undo_stack.length - 1);
+}
+
+function handleKeyPress(e) {
+   if (int_Status !== 1) return;
+   
+   if (e.key === 'ArrowLeft') {
+      fnc_Sort(-1);
+      e.preventDefault();
+   } else if (e.key === 'ArrowRight') {
+      fnc_Sort(1);
+      e.preventDefault();
+   } else if (e.key === ' ') {
+      fnc_Sort(0);
+      e.preventDefault();
+   } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      multiUndo();
+      e.preventDefault();
+   } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+      multiRedo();
+      e.preventDefault();
    }
 }
 
@@ -334,6 +499,7 @@ function fnc_Sort(int_SelectID) {
       case 0:
          // 初回クリック時、ソート情報を初期化する。
          init();
+         pushUndoState();
       case 2:
          // ソートが終了していた場合、ソート処理は行わない。
          return;
@@ -401,6 +567,7 @@ function fnc_Sort(int_SelectID) {
    // 終了チェック
    int_Status = (int_LeftList < 0) ? 2 : 1;
 
+   pushUndoState();
    fnc_ShowData();
 }
 
