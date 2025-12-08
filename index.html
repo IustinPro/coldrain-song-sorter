@@ -18,7 +18,7 @@
   --bg-2: #0b2a4a; /* blue */
   --bg-3: #2a0650; /* purple */
   --bg-4: #2b1a35; /* dark plum */
-  --accent: #ffc000; /* gold accent preserved */
+  --accent: #ffc000; /* gold accent */
 }
 
 body {
@@ -26,7 +26,7 @@ body {
   font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 16px;
   color: #f5f5f5;
-  /* Layered smooth gradient using CSS variables for easy tuning */
+  /* gradient */
   background:
     radial-gradient(1200px 600px at 10% 10%, rgba(255,255,255,0.02), transparent 20%),
     radial-gradient(1000px 500px at 90% 90%, rgba(255,255,255,0.01), transparent 25%),
@@ -37,12 +37,12 @@ body {
   /* Force desktop width and allow horizontal scroll */
   overflow-x: auto;
   min-width: 1024px;
-  /* breathing room at the bottom so results don't reach the window edge */
+  /* space so results don't reach the window edge */
   padding-bottom: 120px;
   position: relative;
 }
 
-/* A very subtle textured overlay for depth (pure CSS) */
+/* very subtle textured overlay */
 body::before{
   content: '';
   pointer-events: none;
@@ -62,7 +62,7 @@ body::before{
   100% { background-position: 0% 50%, 0% 50%, 0% 0%; }
 }
 
-/* Accessibility: respect reduced motion preference */
+/* Accessibility (broken) */
 @media (prefers-reduced-motion: reduce) {
   body {
     animation: none !important;
@@ -71,7 +71,7 @@ body::before{
   body::before { opacity: 0.25; }
 }
 
-/* ---------------- Menubar (Modern & Polished) ---------------- */
+/* ---------------- Menubar ---------------- */
 #menubar {
   position: fixed;
   top: 0;
@@ -272,13 +272,13 @@ body::before{
   font-size: 14px;
 }
 
-/* Special wider styling for Select All */
+/* styling for Select All */
 .select-all-label {
   width: auto;
   max-width: 100%;
 }
 
-/* hide native checkbox but keep it accessible; make it cover the whole label so clicking toggles */
+/* hide native checkbox (for some reason getting rid of it breaks all buttons) */
 .checkbox-wrapper input[type="checkbox"] {
   position: absolute;
   inset: 0;
@@ -290,7 +290,7 @@ body::before{
   z-index: 2;
 }
 
-/* visible box that represents the option */
+/* box */
 .checkbox-wrapper .cbox {
   display: flex;
   align-items: center;
@@ -316,8 +316,7 @@ body::before{
   color: #fff;
 }
 
-/* Container that allows checkbox labels to stack vertically and flow into columns
-   when their combined height reaches 75% of the viewport height. */
+/* Container that allows checkbox labels to stack vertically */
 .checkbox-list {
   display: grid;
   grid-template-columns: repeat(3, 240px);
@@ -328,12 +327,12 @@ body::before{
   margin: 0 auto;
 }
 
-/* Make select-all button span all 3 columns */
+/* Make select-all button */
 .checkbox-list .select-all-label {
   grid-column: 1 / -1;
 }
 
-/* Center the checkbox-list and its columns inside the optTable container */
+/* Center the checkbox-list and its columns inside */
 #optTable {
   text-align: center;
   display: flex;
@@ -377,7 +376,7 @@ body::before{
   50% { opacity: 0.8; }
 }
 
-/* Prevent click/focus from leaving a stuck red glow after interaction */
+/* Prevent click/focus from leaving a stuck red glow after interaction (broken) */
 
 #fldLeft:focus, #fldRight:focus, #fldMiddleT:focus, #fldMiddleB:focus,
 .menu-item:focus, .menu-link:focus, #fldLeft:active, #fldRight:active,
