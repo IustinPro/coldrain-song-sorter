@@ -9,9 +9,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="js/mod_k-factory.js"></script>
 <script src="js/fnc_main_v3.js"></script>
-<script src="js/bm/fnc_data_v2.js"></script>
-<script src="js/bm/op.js"></script>
-<script src="js/bm/src.js"></script>
+<script src="js/fnc_data_coldrain.js"></script>
 
 <style>
 /* ---------------- Body & Animated Gradient ---------------- */
@@ -312,9 +310,10 @@ body::before{
 
 /* selected state */
 .checkbox-wrapper input[type="checkbox"]:checked + .cbox {
-  background: linear-gradient(180deg, rgba(255,200,0,0.15), rgba(255,200,0,0.07));
-  border-color: #ffc000;
-  box-shadow: 0 6px 18px rgba(255,200,0,0.12) inset, 0 6px 18px rgba(0,0,0,0.12);
+  background: linear-gradient(180deg, rgba(200,0,100,0.25), rgba(150,0,80,0.15));
+  border-color: #d4176b;
+  box-shadow: 0 6px 18px rgba(200,0,100,0.2) inset, 0 6px 18px rgba(0,0,0,0.15);
+  color: #fff;
 }
 
 /* Container that allows checkbox labels to stack vertically and flow into columns
@@ -356,6 +355,28 @@ body::before{
   text-align: center;
 }
 
+/* Album warning when 5+ selected */
+.album-warning {
+  background: linear-gradient(180deg, rgba(255,100,0,0.2), rgba(200,50,0,0.15));
+  border: 1.5px solid rgba(255,150,0,0.6);
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin: 20px auto;
+  max-width: 600px;
+  color: #ffb366;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  animation: warningPulse 2s ease-in-out;
+}
+
+@keyframes warningPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
 /* Prevent click/focus from leaving a stuck red glow after interaction */
 
 #fldLeft:focus, #fldRight:focus, #fldMiddleT:focus, #fldMiddleB:focus,
@@ -383,9 +404,231 @@ body::before{
   box-shadow: none !important;
 }
 
+/* Additional menubar polish: prevent color/outline from sticking and add subtle press feedback */
+#menubar .menu-item, #menubar .menu-link {
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.18s ease, transform 0.08s ease;
+}
+
+/* Ensure focus/active always reset to base color and remove any lingering background */
+#menubar .menu-item:focus, #menubar .menu-item:active,
+#menubar .menu-link:focus, #menubar .menu-link:active,
+#menubar .menu-item:focus-visible, #menubar .menu-link:focus-visible {
+  color: #e0e0e0 !important;
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Subtle press animation */
+#menubar .menu-item:active, #menubar .menu-link:active {
+  transform: translateY(1px);
+}
+
+/* Improve contrast for hovered state but avoid permanent color change */
+#menubar .menu-item:hover, #menubar .menu-link:hover {
+  color: var(--accent, #ffc000);
+}
+
 /* Remove mobile tap highlight on interactive elements */
 a, .menu-item, .menu-link, #fldLeft, #fldRight, #fldMiddleT, #fldMiddleB {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ----------- Control Buttons & Tab (Undo/Redo in Menubar) ---------- */
+.control-btn-small {
+  background: linear-gradient(135deg, rgba(212, 23, 107, 0.25), rgba(100, 20, 70, 0.25)) !important;
+  border: 1px solid rgba(212, 23, 107, 0.4) !important;
+  color: #e0e0e0 !important;
+  padding: 4px 12px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: 0.9em !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  backdrop-filter: blur(8px) !important;
+  display: inline-block !important;
+  margin: 0 4px !important;
+}
+
+.control-btn-small:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(212, 23, 107, 0.4), rgba(100, 20, 70, 0.4)) !important;
+  border-color: rgba(212, 23, 107, 0.6) !important;
+  box-shadow: 0 0 12px rgba(212, 23, 107, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+.control-btn-small:active:not(:disabled) {
+  transform: translateY(0) !important;
+  box-shadow: 0 0 6px rgba(212, 23, 107, 0.15) !important;
+}
+
+.control-btn-small:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  border-color: rgba(212, 23, 107, 0.15) !important;
+}
+
+.controls-tab {
+  margin-left: 20px !important;
+  color: #999 !important;
+  font-size: 0.85em !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: inline-block !important;
+  user-select: none !important;
+}
+
+.controls-tab:hover {
+  color: #d4176b !important;
+  background: rgba(212, 23, 107, 0.1) !important;
+}
+
+/* Dropdown Controls Menu */
+.controls-menu {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  background: linear-gradient(135deg, rgba(20,30,60,0.95), rgba(30,20,50,0.95));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 23, 107, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+  padding: 20px;
+  min-width: 280px;
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+}
+
+.controls-menu.hidden {
+  display: none !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.controls-menu-content h3 {
+  margin: 0 0 15px 0;
+  color: #d4176b;
+  font-size: 1em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.control-item:hover {
+  background: rgba(212, 23, 107, 0.1);
+}
+
+.control-item:last-child {
+  margin-bottom: 0;
+}
+
+.control-key {
+  background: rgba(212, 23, 107, 0.25);
+  border: 1px solid rgba(212, 23, 107, 0.4);
+  color: #d4176b;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  min-width: 100px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.control-desc {
+  color: #bbb;
+  font-size: 0.9em;
+}
+
+/* Hide controls menu on mobile */
+@media (max-width: 768px) {
+  .controls-menu {
+    display: none !important;
+  }
+  
+  .controls-tab {
+    display: none !important;
+  }
+}
+
+/* Middle button styles */
+.middle-btn {
+  background: linear-gradient(135deg, rgba(212, 23, 107, 0.25), rgba(100, 20, 70, 0.25));
+  border: 1px solid rgba(212, 23, 107, 0.4);
+  color: #e0e0e0;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  margin: 0 4px;
+  display: inline-block;
+}
+
+.middle-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(212, 23, 107, 0.4), rgba(100, 20, 70, 0.4));
+  border-color: rgba(212, 23, 107, 0.6);
+  box-shadow: 0 0 12px rgba(212, 23, 107, 0.25);
+  transform: translateY(-1px);
+}
+
+.middle-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 0 6px rgba(212, 23, 107, 0.15);
+}
+
+.middle-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: rgba(212, 23, 107, 0.15);
+}
+
+/* Keyboard hint animations for prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .control-btn-small {
+    transition: none !important;
+  }
+  
+  .controls-tab {
+    transition: none !important;
+  }
+  
+  .controls-menu {
+    animation: none !important;
+  }
+  
+  .control-item {
+    transition: none !important;
+  }
+  
+  .middle-btn {
+    transition: none !important;
+  }
 }
 
 /* ---------------- Result Table Styling (Modern & Minimal) ---------------- */
@@ -537,6 +780,30 @@ a:hover { color: #ffd780; }
     <div class="menu-item menu-link" id="menu-restart"><p>Restart</p></div>
     <div class="menu-item"><p>Battle Nr. <span id="lblCount">-</span></p></div>
     <div class="menu-item"><p><span id="lblProgress">0</span>% sorted</p></div>
+    <div class="menu-item controls-tab" id="controls-tab-btn" onclick="toggleControlsMenu();" title="Show keyboard controls">Controls</div>
+  </div>
+  
+  <!-- Controls Dropdown Menu -->
+  <div id="controls-menu" class="controls-menu hidden">
+    <div class="controls-menu-content">
+      <h3>Keyboard Controls</h3>
+      <div class="control-item">
+        <span class="control-key">Left/Right Arrow</span>
+        <span class="control-desc">Choose left or right song</span>
+      </div>
+      <div class="control-item">
+        <span class="control-key">Spacebar</span>
+        <span class="control-desc">Mark as tie</span>
+      </div>
+      <div class="control-item">
+        <span class="control-key">Ctrl + Z</span>
+        <span class="control-desc">Undo last choice</span>
+      </div>
+      <div class="control-item">
+        <span class="control-key">Ctrl + Y</span>
+        <span class="control-desc">Redo choice</span>
+      </div>
+    </div>
   </div>
   <a href="https://github.com/IustinPro/coldrain-song-sorter">
     <div class="menu-item menu-link menu-right"><p>Github</p></div>
@@ -561,7 +828,7 @@ a:hover { color: #ffd780; }
         <td style="width: 60px;"></td>
         <td>
           <div id="fldMiddleT" onclick="fnc_Sort(0);">coldrain Song Sort</div>
-          <div id="fldMiddleB" onclick="fnc_Undo();">Click to start!</div>
+          <div id="fldMiddleB">Click to start!</div>
         </td>
         <td style="width: 60px;"></td>
         <td id="fldRight" onclick="fnc_Sort(1);">
