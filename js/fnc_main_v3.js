@@ -1,4 +1,4 @@
-﻿// 2008/7/3 Scripted by K-Factory@migiwa
+// 2008/7/3 Scripted by K-Factory@migiwa
 // 2008/7/19 Modified by  K-Factory@migiwa
 // ・イラストのランダム化
 // ・BugFix
@@ -59,58 +59,59 @@ var maxRows = 25;
 // * <BODY>タグの読み込み終了時に実行。
 function startup() {
    var tbl_Select = gID('optTable');
-   var tbl_body_Select = cE('tbody');
-   tbl_Select.appendChild(tbl_body_Select);
+   // create a checkbox-list container inside optTable so items can flow into columns
+   var checkboxList = cE('div');
+   checkboxList.id = 'optCheckboxList';
+   sC(checkboxList, 'checkbox-list');
+   // Clear any existing content and append the list
+   while (tbl_Select.firstChild) tbl_Select.removeChild(tbl_Select.firstChild);
+   tbl_Select.appendChild(checkboxList);
 
-   // タイトルから選択用チェックボックスに変換
-   for (i=0; i<ary_TitleData.length; i++) {
-      // Row[i]
-      if ((i % int_Colspan) == 0) {
-         var new_row = tbl_body_Select.insertRow(tbl_body_Select.rows.length);
-         new_row.id = 'optSelRow' + i;
-      }
-      // Col[0]
-      var new_cell = new_row.insertCell(new_row.childNodes.length);
+   // Convert titles into checkbox labels inside the checkbox-list
+   for (i = 0; i < ary_TitleData.length; i++) {
+      var label = cE('label');
+      sC(label, 'checkbox-wrapper');
+
       var new_CheckBox = cE('input');
       new_CheckBox.setAttribute('type', 'checkbox', 0);
       new_CheckBox.setAttribute('checked', 'true', 0);
       new_CheckBox.value = ary_TitleData[i];
       new_CheckBox.title = ary_TitleData[i];
       new_CheckBox.id = 'optSelect' + i;
-      new_cell.appendChild(new_CheckBox);
+      label.appendChild(new_CheckBox);
 
       var new_span = cE('span');
       new_span.appendChild(cT(ary_TitleData[i]));
       new_span.title = ary_TitleData[i];
       new_span.id = i;
       sC(new_span, 'cbox');
-      new_span.onclick = function() {chgFlag(this.id);}
-      new_cell.appendChild(new_span);
+      new_span.onclick = function() { chgFlag(this.id); };
+      label.appendChild(new_span);
+
+      checkboxList.appendChild(label);
    }
 
    gID('optImage').disabled = false;
 
-   var tbl_foot_Select = cE('tfoot');
-   tbl_Select.appendChild(tbl_foot_Select);
-
-   // Row[0]
-   var new_row = tbl_foot_Select.insertRow(tbl_foot_Select.rows.length);
-   sC(new_row, "opt_foot");
-
-   var new_cell = new_row.insertCell(new_row.childNodes.length);
-   new_cell.setAttribute('colspan', int_Colspan, 0);
+   // Create a "Select All" checkbox and append it to the checkbox-list
+   var new_label = cE('label');
+   sC(new_label, 'checkbox-wrapper');
+   sC(new_label, 'select-all-label');
    var new_CheckBox = cE('input');
    new_CheckBox.setAttribute('type', 'checkbox', 0);
    new_CheckBox.setAttribute('checked', 'true', 0);
    new_CheckBox.value = "All";
    new_CheckBox.title = "All boxes are checked/unchecked at the same time.";
    new_CheckBox.id = 'optSelect_all';
-   new_CheckBox.onclick = function() {chgAll();}
-   new_cell.appendChild(new_CheckBox);
-
+   new_CheckBox.onclick = function() { chgAll(); };
+   new_label.appendChild(new_CheckBox);
    var new_span = cE('span');
    new_span.appendChild(cT("Select All"));
-   new_cell.appendChild(new_span);
+   sC(new_span, 'cbox');
+   new_label.appendChild(new_span);
+
+   // Append directly to the checkbox-list (inside the grid)
+   checkboxList.appendChild(new_label);
 
 
    if (!bln_ProgessBar) fCG(sID, iGM, iGM);
