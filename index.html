@@ -15,48 +15,107 @@
 
 <style>
 /* ---------------- Body & Animated Gradient ---------------- */
+:root{
+  --bg-1: #071028; /* deep navy */
+  --bg-2: #0b2a4a; /* blue */
+  --bg-3: #2a0650; /* purple */
+  --bg-4: #2b1a35; /* dark plum */
+  --accent: #ffc000; /* gold accent preserved */
+}
+
 body {
   margin: 0;
   font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 16px;
   color: #f5f5f5;
-  background: linear-gradient(-45deg, #00132a, #002466, #3a0000, #3a3a00, #003399, #001f4d);
-  background-size: 600% 600%;
-  animation: gradientShift 40s ease infinite;
-  
+  /* Layered smooth gradient using CSS variables for easy tuning */
+  background:
+    radial-gradient(1200px 600px at 10% 10%, rgba(255,255,255,0.02), transparent 20%),
+    radial-gradient(1000px 500px at 90% 90%, rgba(255,255,255,0.01), transparent 25%),
+    linear-gradient(120deg, var(--bg-1) 0%, var(--bg-2) 35%, var(--bg-3) 65%, var(--bg-4) 100%);
+  background-size: 300% 300%, 300% 300%, 100% 100%;
+  animation: gradientShift 36s ease-in-out infinite;
+
   /* Force desktop width and allow horizontal scroll */
   overflow-x: auto;
   min-width: 1024px;
+  /* breathing room at the bottom so results don't reach the window edge */
+  padding-bottom: 120px;
+  position: relative;
+}
+
+/* A very subtle textured overlay for depth (pure CSS) */
+body::before{
+  content: '';
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.6;
+  mix-blend-mode: overlay;
 }
 
 @keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% { background-position: 0% 50%, 0% 50%, 0% 0%; }
+  25% { background-position: 50% 30%, 40% 70%, 0% 0%; }
+  50% { background-position: 100% 50%, 80% 30%, 0% 0%; }
+  75% { background-position: 40% 70%, 60% 20%, 0% 0%; }
+  100% { background-position: 0% 50%, 0% 50%, 0% 0%; }
 }
 
-/* ---------------- Menubar ---------------- */
+/* Accessibility: respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none !important;
+    transition: none !important;
+  }
+  body::before { opacity: 0.25; }
+}
+
+/* ---------------- Menubar (Modern & Polished) ---------------- */
 #menubar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  background: rgba(15,15,40,0.6);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding: 0 24px;
+  background: linear-gradient(180deg, rgba(20,20,50,0.95), rgba(15,15,40,0.92));
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,200,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   z-index: 100;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  position: relative;
 }
 
-#menubar:hover {
-  background: rgba(15,15,40,0.75);
-  border-bottom-color: rgba(255,200,150,0.4);
+/* Right-side links container */
+#menubar .menu-right-group {
+  position: absolute;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Wrapper for center items */
+#menubar > div:not(:first-child):not(:last-child),
+#menubar > a {
+  display: flex;
+  align-items: center;
+}
+
+/* Create a centered group for left/center items */
+#menubar .menu-center {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  justify-content: center;
 }
 
 .menu-item {
@@ -64,22 +123,63 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
-  border-left: 1px solid rgba(255,255,255,0.2);
+  padding: 0 14px;
+  color: #e0e0e0;
+  font-size: 13px;
   transition: all 0.2s ease;
+  position: relative;
 }
 
-#menu-restart { border-left: none; }
+.menu-item::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffc000, transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
 
-.menu-link { cursor: pointer; color: #fff; text-decoration: none; transition: all 0.2s; }
-.menu-link:hover { color: #ffd780; transform: scale(1.05); }
+.menu-item:hover {
+  color: #ffc000;
+}
+
+.menu-item:hover::before {
+  opacity: 1;
+}
+
+#menu-restart {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.menu-link { 
+  cursor: pointer; 
+  color: #e0e0e0; 
+  text-decoration: none; 
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.menu-link:hover { 
+  color: #ffc000; 
+}
+
+.menu-right {
+  margin-left: auto;
+}
 
 /* ---------------- Table & Fields ---------------- */
 #mainTable {
   border-collapse: collapse;
-  margin: 100px auto 20px auto;
+  margin: 100px 0 20px 0;
   text-align: center;
-  min-width: 1024px; /* force desktop width */
+  display: table;
+  width: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #mainTable td {
@@ -166,63 +266,260 @@ body {
 
 /* ---------------- Checkbox ---------------- */
 .checkbox-wrapper {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #fff;
-  cursor: pointer;
-}
-
-.checkbox-wrapper input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255,255,255,0.6);
-  border-radius: 4px;
-  background-color: rgba(255,255,255,0.05);
   position: relative;
-  transition: all 0.2s ease;
-}
-
-.checkbox-wrapper input[type="checkbox"]:checked {
-  background: rgba(255,200,0,0.5);
-  border-color: #ffc000;
-}
-
-.checkbox-wrapper input[type="checkbox"]:checked::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  width: 4px;
-  height: 10px;
-  border: solid #000;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-/* ---------------- Result Table Styling ---------------- */
-#resultField, #optTable {
-  width: 100%;
-  max-width: 900px;
+  display: block;
+  width: 240px;
+  box-sizing: border-box;
   margin: 0 auto;
-  overflow-x: auto;
-  word-wrap: break-word;
-  min-width: 1024px; /* force desktop width */
+  font-size: 14px;
 }
 
-#resultField table, #optTable {
+/* Special wider styling for Select All */
+.select-all-label {
+  width: auto;
+  max-width: 100%;
+}
+
+/* hide native checkbox but keep it accessible; make it cover the whole label so clicking toggles */
+.checkbox-wrapper input[type="checkbox"] {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* visible box that represents the option */
+.checkbox-wrapper .cbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  background: rgba(15,15,40,0.45);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #fff;
+  transition: all 0.18s ease;
+  min-height: 44px;
+  position: relative;
+  z-index: 1;
+}
+
+/* selected state */
+.checkbox-wrapper input[type="checkbox"]:checked + .cbox {
+  background: linear-gradient(180deg, rgba(255,200,0,0.15), rgba(255,200,0,0.07));
+  border-color: #ffc000;
+  box-shadow: 0 6px 18px rgba(255,200,0,0.12) inset, 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* Container that allows checkbox labels to stack vertically and flow into columns
+   when their combined height reaches 75% of the viewport height. */
+.checkbox-list {
+  display: grid;
+  grid-template-columns: repeat(3, 240px);
+  gap: 12px;
+  justify-content: center;
+  max-height: 75vh;
+  padding: 6px;
+  margin: 0 auto;
+}
+
+/* Make select-all button span all 3 columns */
+.checkbox-list .select-all-label {
+  grid-column: 1 / -1;
+}
+
+/* Center the checkbox-list and its columns inside the optTable container */
+#optTable {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 20px auto;
+}
+
+/* Ensure the inner checkbox-list grid is centered */
+#optTable .checkbox-list {
+  margin: 0 auto;
+}
+
+/* Style for the Select All block beneath the checkbox columns */
+.select-all {
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Prevent click/focus from leaving a stuck red glow after interaction */
+
+#fldLeft:focus, #fldRight:focus, #fldMiddleT:focus, #fldMiddleB:focus,
+.menu-item:focus, .menu-link:focus, #fldLeft:active, #fldRight:active,
+#fldMiddleT:active, #fldMiddleB:active,
+#fldLeft:focus-visible, #fldRight:focus-visible, #fldMiddleT:focus-visible, #fldMiddleB:focus-visible,
+.menu-item:focus-visible, .menu-link:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Specifically target menubar anchors and items to remove persistent focus ring */
+#menubar a:focus, #menubar a:active, #menubar .menu-item:focus, #menubar .menu-item:active,
+#menubar .menu-link:focus, #menubar .menu-link:active,
+#menubar .menu-item:focus-visible, #menubar .menu-link:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  outline-color: transparent !important;
+}
+
+/* Catch-all stronger rule for any focused/active element inside the menubar */
+#menubar :focus, #menubar :active, #menubar :focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove mobile tap highlight on interactive elements */
+a, .menu-item, .menu-link, #fldLeft, #fldRight, #fldMiddleT, #fldMiddleB {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------------- Result Table Styling (Modern & Minimal) ---------------- */
+#resultField {
+  width: auto;
+  max-width: 95%;
+  margin: 40px 20px 20px 20px;
+  padding: 0;
+  background: linear-gradient(135deg, rgba(20,30,60,0.6), rgba(30,20,50,0.6));
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,200,0,0.1);
+  overflow: hidden;
+}
+
+/* Top 3 results display as a horizontal grid */
+#resultField > .resTable:first-child {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  background: transparent;
+}
+
+#resultField > .resTable:first-child thead {
+  display: none;
+}
+
+#resultField > .resTable:first-child tbody {
+  display: contents;
+}
+
+#resultField > .resTable:first-child tbody tr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  border: none !important;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+#resultField > .resTable:first-child tbody tr:last-child {
+  border-right: none;
+}
+
+#resultField > .resTable:first-child td {
+  width: 100%;
+  padding: 10px 0;
+  border: none !important;
+}
+
+#resultField > .resTable:first-child .resTableL {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffc000;
+  margin-bottom: 10px;
+}
+
+#resultField > .resTable:first-child .resTableR {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Regular table styling for results after top 3 */
+#resultField > .resTable:not(:first-child) {
+  width: 100%;
+}
+
+#resultField table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
+  background: transparent;
+  margin: 0;
 }
 
-#resultField table td, #optTable td {
-  padding: 6px;
+#resultField tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.15s ease;
+}
+
+#resultField tbody tr:last-child {
+  border-bottom: none;
+}
+
+#resultField tbody tr:hover {
+  background: rgba(255,200,0,0.04);
+}
+
+#resultField table td {
+  padding: 16px 20px;
   text-align: center;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: none;
+  color: #f0f0f0;
+  font-size: 15px;
+}
+
+#resultField table img {
+  max-width: 160px;
+  max-height: 160px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin: 0 auto 8px auto;
+  display: block;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+
+#resultField table img:hover {
+  transform: scale(1.05);
+}
+
+#resultField .resTableL {
+  font-weight: 700;
+  color: #ffc000;
+  min-width: 50px;
+  width: 60px;
+}
+
+#resultField .resTableH {
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,200,0,0.08);
+  padding: 14px 20px;
+  font-size: 14px;
+}
+
+#resultField .resTableR {
+  text-align: center;
+  color: #f0f0f0;
 }
 
 /* ---------------- Links ---------------- */
@@ -236,9 +533,11 @@ a:hover { color: #ffd780; }
 
 <!-- Menubar -->
 <div id="menubar">
-  <div class="menu-item menu-link" id="menu-restart"><p>Restart</p></div>
-  <div class="menu-item"><p>Battle Nr. <span id="lblCount">-</span></p></div>
-  <div class="menu-item"><p><span id="lblProgress">0</span>% sorted</p></div>
+  <div class="menu-center">
+    <div class="menu-item menu-link" id="menu-restart"><p>Restart</p></div>
+    <div class="menu-item"><p>Battle Nr. <span id="lblCount">-</span></p></div>
+    <div class="menu-item"><p><span id="lblProgress">0</span>% sorted</p></div>
+  </div>
   <a href="https://github.com/IustinPro/coldrain-song-sorter">
     <div class="menu-item menu-link menu-right"><p>Github</p></div>
   </a>
@@ -251,7 +550,7 @@ a:hover { color: #ffd780; }
 </div>
 
 <!-- Main Table -->
-<div align="center">
+<div style="display: flex; justify-content: center; width: 100%;">
   <table id="mainTable">
     <tbody>
       <tr>
@@ -274,12 +573,16 @@ a:hover { color: #ffd780; }
     <tfoot>
       <tr>
         <td colspan="5">
-          <div align="center">
+          <div style="display: flex; justify-content: center; width: 100%;">
             <br>
-            <label class="checkbox-wrapper">
-              <input id="optImage" type="checkbox" checked>
-              Display images while sorting.
-            </label>
+            <div class="checkbox-list">
+              <label class="checkbox-wrapper">
+                <input id="optImage" type="checkbox" checked>
+                <span class="cbox">Display images while sorting.</span>
+              </label>
+              <!-- Add more checkboxes here as needed; they will stack vertically
+                   and flow into additional columns once the column height reaches 75vh. -->
+            </div>
           </div>
         </td>
       </tr>
@@ -287,18 +590,20 @@ a:hover { color: #ffd780; }
   </table>
 </div>
 
-<!-- Optional Table -->
-<table id="optTable" align="center" width="450"></table><br>
+<!-- Optional Table (now a container div for checkbox-list) -->
+<div id="optTable"></div><br>
 
 <!-- Raw Text Results -->
-<div id="ranTable" style="display:none;" align="center">
-  <form>
+<div id="ranTable" style="display:none; text-align: center; margin: 20px 0;">
+  <form style="display: flex; justify-content: center;">
     <input id="btn-rawtext" value="Raw Text Results" onclick="OpenWnd()" type="button">
   </form>
 </div>
 
 <!-- Results Field -->
-<div class="style4" id="resultField" style="text-align:center;"><br></div>
+<div style="display: flex; justify-content: center; width: 100%;">
+  <div class="style4" id="resultField" style="text-align:center;"><br></div>
+</div>
 
 </body>
 </html>
