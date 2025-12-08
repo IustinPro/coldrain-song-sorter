@@ -1,4 +1,4 @@
-﻿// 2008/7/3 Scripted by K-Factory@migiwa
+// 2008/7/3 Scripted by K-Factory@migiwa
 // 2009/1/27 Modified by K-Factory@migiwa
 // 2025/10/10 coldrain Fork by IustinPro
 
