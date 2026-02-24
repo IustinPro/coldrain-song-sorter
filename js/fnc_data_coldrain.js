@@ -190,3 +190,22 @@ var ary_CharacterData = [
 [1, "New Dawn", [0,0,0,0,0,0,0,0,0,0,0,0,0,1], "crsong/cr_nd.jpg"],
   
 ];
+
+// Album/EP data for ranking
+var ary_AlbumData = [
+  [1, "Until The End", "crsong/cr_ute.jpg"],
+  [1, "Optimize", "crsong/cr_o.jpg"],
+  [1, "Through Clarity", "crsong/cr_tc.jpg"],
+  [1, "Nothing Lasts Forever", "crsong/cr_nlf.jpg"],
+  [1, "Final Destination (Re-Recorded)", "crsong/cr_fdr.jpg"],
+  [1, "Nonnegative", "crsong/cr_nn.jpg"],
+  [1, "The Side Effects", "crsong/cr_tsf.jpg"],
+  [1, "Fateless", "crsong/cr_f.jpg"],
+  [1, "Vena", "crsong/cr_v.jpg"],
+  [1, "The Revelation", "crsong/cr_tr.jpg"],
+  [1, "The Enemy Inside", "crsong/cr_tei.jpg"],
+  [1, "Final Destination", "crsong/cr_fd.jpg"],
+];
+
+// Mode flag: 0 = Song ranking, 1 = Album ranking
+var int_SortMode = 0;
