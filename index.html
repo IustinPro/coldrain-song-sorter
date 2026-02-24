@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>coldrain Song Sort</title>
-<!-- Force desktop mode on mobile -->
-<meta name="viewport" content="width=1024">
+<!-- viewport for mobile -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="js/mod_k-factory.js"></script>
@@ -69,6 +69,283 @@ body::before{
     transition: none !important;
   }
   body::before { opacity: 0.25; }
+}
+
+/* Mobile Optimization */
+@media (max-width: 1024px) {
+  body {
+    min-width: auto;
+    font-size: 15px;
+    overflow-x: visible;
+  }
+  
+  #menubar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 12px;
+  }
+  
+  #menubar .menu-center {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+  
+  .menu-item {
+    padding: 0 8px;
+    font-size: 11px;
+    min-height: 40px;
+  }
+  
+  #menubar .menu-right-group {
+    position: static;
+    width: 100%;
+    justify-content: center;
+    gap: 0;
+    margin-top: 6px;
+  }
+  
+  #mainTable {
+    margin: 70px auto 20px auto;
+  }
+  
+  #fldLeft, #fldRight {
+    width: 180px;
+    height: 180px;
+  }
+  
+  #fldMiddleT, #fldMiddleB {
+    width: 200px;
+  }
+  
+  .songName {
+    font-size: 14px;
+  }
+  
+  #resultField table img {
+    max-width: 120px;
+    max-height: 120px;
+  }
+  
+  .checkbox-list {
+    grid-template-columns: repeat(2, 1fr);
+    max-height: 60vh;
+  }
+  
+  .checkbox-wrapper .cbox {
+    font-size: 13px;
+    padding: 8px 6px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    padding-bottom: 80px;
+  }
+  
+  #menubar {
+    height: auto;
+    padding: 6px 8px;
+  }
+  
+  .menu-item {
+    padding: 0 6px;
+    font-size: 10px;
+    min-height: 36px;
+  }
+  
+  .menu-item p {
+    margin: 0;
+  }
+  
+  #mainTable {
+    margin: 60px auto 20px auto;
+    width: 100%;
+    padding: 0 8px;
+    box-sizing: border-box;
+  }
+  
+  #mainTable tr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  #mainTable td:nth-child(2),
+  #mainTable td:nth-child(4) {
+    display: none;
+  }
+  
+  #fldLeft, #fldRight {
+    width: 140px;
+    height: 140px;
+  }
+  
+  #fldMiddleT, #fldMiddleB {
+    width: 160px;
+    font-size: 16px;
+    padding: 10px;
+  }
+  
+  .songName {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  
+  #resultField {
+    margin: 20px 8px;
+    max-width: calc(100% - 16px);
+    padding: 0;
+  }
+  
+  #resultField > .resTable:first-child {
+    grid-template-columns: 1fr;
+  }
+  
+  #resultField > .resTable:first-child tbody tr {
+    padding: 12px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  
+  #resultField table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  #resultField table img {
+    max-width: 100px;
+    max-height: 100px;
+  }
+  
+  .checkbox-list {
+    grid-template-columns: 1fr;
+    max-height: 50vh;
+    gap: 8px;
+  }
+  
+  .checkbox-wrapper .cbox {
+    font-size: 12px;
+    padding: 8px;
+    min-height: 38px;
+  }
+  
+  .control-key {
+    font-size: 0.8em;
+    min-width: 80px;
+    padding: 2px 6px;
+  }
+  
+  .middle-btn {
+    padding: 4px 8px;
+    font-size: 0.8em;
+    margin: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  #menubar {
+    padding: 4px;
+  }
+  
+  .menu-item {
+    padding: 0 4px;
+    font-size: 9px;
+    min-height: 32px;
+  }
+  
+  .menu-item:hover {
+    background: rgba(255,200,0,0.05);
+  }
+  
+  #mainTable {
+    margin: 50px auto 12px auto;
+    padding: 0 6px;
+  }
+  
+  #fldLeft, #fldRight {
+    width: 120px;
+    height: 120px;
+  }
+  
+  #fldMiddleT, #fldMiddleB {
+    width: 140px;
+    font-size: 14px;
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .songName {
+    font-size: 11px;
+    margin-top: 3px;
+  }
+  
+  #optTable {
+    padding: 0 6px;
+  }
+  
+  .checkbox-list {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    max-height: 45vh;
+  }
+  
+  .checkbox-wrapper .cbox {
+    font-size: 11px;
+    padding: 6px;
+    min-height: 36px;
+  }
+  
+  .album-warning {
+    font-size: 12px;
+    padding: 10px 12px;
+    margin: 12px 6px;
+  }
+  
+  #resultField {
+    margin: 12px 6px;
+    max-width: calc(100% - 12px);
+  }
+  
+  #resultField > .resTable:first-child {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  #resultField > .resTable:first-child tbody tr {
+    padding: 10px;
+    border-right: none;
+  }
+  
+  #resultField table td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+  
+  #resultField table img {
+    max-width: 80px;
+    max-height: 80px;
+  }
+  
+  .controls-menu {
+    top: 50px;
+    right: 10px;
+    min-width: 260px;
+    padding: 12px;
+  }
+  
+  .middle-btn {
+    padding: 4px 8px;
+    font-size: 0.75em;
+    margin: 2px 1px;
+  }
 }
 
 /* ---------------- Menubar ---------------- */
@@ -153,6 +430,16 @@ body::before{
   letter-spacing: 0.5px;
 }
 
+#menu-mode-songs, #menu-mode-albums {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+#menu-mode-songs.active, #menu-mode-albums.active {
+  color: #ffc000;
+  text-shadow: 0 0 8px rgba(255, 192, 0, 0.6);
+}
+
 .menu-link { 
   cursor: pointer; 
   color: #e0e0e0; 
@@ -213,6 +500,25 @@ body::before{
   margin: 0 auto;
   outline: none;
   border: none;
+}
+
+/* Placeholder box styling */
+.placeholder-box {
+  width: 100%;
+  height: 260px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,200,0,0.1), rgba(100,100,200,0.1));
+  border: 2px dashed rgba(255,200,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,200,0,0.3);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#fldLeft .placeholder-box, #fldRight .placeholder-box {
+  margin: 0;
 }
 
 /* ---------------- Middle Fields ---------------- */
@@ -776,9 +1082,11 @@ a:hover { color: #ffd780; }
 <!-- Menubar -->
 <div id="menubar">
   <div class="menu-center">
-    <div class="menu-item menu-link" id="menu-restart"><p>Restart</p></div>
+    <div class="menu-item menu-link" id="menu-restart" onclick="location.reload();"><p>Restart</p></div>
     <div class="menu-item"><p>Battle Nr. <span id="lblCount">-</span></p></div>
     <div class="menu-item"><p><span id="lblProgress">0</span>% sorted</p></div>
+    <div class="menu-item menu-link" id="menu-mode-songs" onclick="switchToSongs();" title="Rank songs">Rank Songs</div>
+    <div class="menu-item menu-link" id="menu-mode-albums" onclick="switchToAlbums();" title="Rank albums & EPs">Rank Albums</div>
     <div class="menu-item controls-tab" id="controls-tab-btn" onclick="toggleControlsMenu();" title="Show keyboard controls">Controls</div>
   </div>
   
@@ -821,17 +1129,17 @@ a:hover { color: #ffd780; }
     <tbody>
       <tr>
         <td id="fldLeft" onclick="fnc_Sort(-1);">
-          <img src="img/bm.png" alt="Left Album">
+          <div class="placeholder-box" id="placeholderLeft"></div>
           <div class="songName" id="songLeft"></div>
         </td>
         <td style="width: 60px;"></td>
         <td>
           <div id="fldMiddleT" onclick="fnc_Sort(0);">coldrain Song Sort</div>
-          <div id="fldMiddleB">Click to start!</div>
+          <div id="fldMiddleB" onclick="fnc_Sort(0);">Click to start!</div>
         </td>
         <td style="width: 60px;"></td>
         <td id="fldRight" onclick="fnc_Sort(1);">
-          <img src="img/bm.png" alt="Right Album">
+          <div class="placeholder-box" id="placeholderRight"></div>
           <div class="songName" id="songRight"></div>
         </td>
       </tr>
