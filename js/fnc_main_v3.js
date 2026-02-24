@@ -117,6 +117,9 @@ function startup() {
    // Append directly to the checkbox-list (inside the grid)
    checkboxList.appendChild(new_label);
 
+   // Initialize mode buttons
+   updateModeButtons();
+
    // Add keyboard event listener
    document.addEventListener('keydown', handleKeyPress);
 
@@ -187,25 +190,34 @@ function init(){
    int_RecordID = 0;
 
    // ソート対象のみを抽出
-   for (i=0; i<ary_CharacterData.length; i++) {
-      for (j=0; j<ary_TitleData.length; j++) {
-         if (gID('optSelect' + j).checked && (ary_CharacterData[i][2][j] == 1)) {
-            ary_TempData[int_Total] = ary_CharacterData[i];
-            int_Total++;
-            break;
+   if (int_SortMode === 0) {
+      // Song mode - original behavior
+      for (i=0; i<ary_CharacterData.length; i++) {
+         for (j=0; j<ary_TitleData.length; j++) {
+            if (gID('optSelect' + j).checked && (ary_CharacterData[i][2][j] == 1)) {
+               ary_TempData[int_Total] = ary_CharacterData[i];
+               int_Total++;
+               break;
+            }
          }
       }
+   } else {
+      // Album mode - use all albums
+      ary_TempData = ary_AlbumData.slice();
+      int_Total = ary_TempData.length;
    }
 
    if (int_Total == 0) {
       alert("Please make a selection.");
       return;
    } else {
-      for (i=0; i<ary_TitleData.length; i++) {
-         gID('optSelect' + i).disabled = true;
-         gID('optSelect' + i).style.dsiplay = 'none';
+      if (int_SortMode === 0) {
+         for (i=0; i<ary_TitleData.length; i++) {
+            gID('optSelect' + i).disabled = true;
+            gID('optSelect' + i).style.dsiplay = 'none';
+         }
+         gID('optImage').disabled = true;
       }
-      gID('optImage').disabled = true;
    }
 
    int_Total = 0;
@@ -256,6 +268,13 @@ function init(){
    int_Status    = 1;
 
    gID('fldMiddleT').innerHTML = str_CenterT;
+   
+   // Update title based on mode
+   if (int_SortMode === 1) {
+      gID('fldMiddleT').innerHTML = "Rank Albums";
+   } else {
+      gID('fldMiddleT').innerHTML = str_CenterT;
+   }
    
    // Replace the "Click to start!" text with undo/redo buttons
    var middleB = gID('fldMiddleB');
@@ -591,7 +610,10 @@ function fnc_CountUp(int_Select) {
 // * ShowData
 // * 進捗率と名前を表示する。
 function fnc_ShowData() {
-	
+	if (int_SortMode === 1) {
+		fnc_ShowDataAlbum();
+		return;
+	}
 	
 	
    gID("lblCount").innerHTML = int_Count;
@@ -763,4 +785,201 @@ function fnc_ShowData() {
 function fnc_CC(sID, sClass) {
 
    sC(gID(sID), sClass);
+}
+
+// *****************************************************************************
+// * Album Ranking Mode Functions
+// *****************************************************************************
+
+function switchToSongs() {
+   int_SortMode = 0;
+   updateModeButtons();
+   resetSort();
+}
+
+function switchToAlbums() {
+   int_SortMode = 1;
+   updateModeButtons();
+   resetSort();
+}
+
+function updateModeButtons() {
+   var songsBtn = gID("menu-mode-songs");
+   var albumsBtn = gID("menu-mode-albums");
+   
+   if (int_SortMode === 0) {
+      songsBtn.classList.add("active");
+      albumsBtn.classList.remove("active");
+   } else {
+      songsBtn.classList.remove("active");
+      albumsBtn.classList.add("active");
+   }
+}
+
+function resetSort() {
+   // Reset all sorting variables
+   ary_TempData = new Array();
+   ary_SortData = new Array();
+   ary_ParentData = new Array();
+   ary_EqualData = new Array();
+   int_LeftList = undefined;
+   int_LeftID = undefined;
+   int_RightList = undefined;
+   int_RightID = undefined;
+   ary_RecordData = new Array();
+   int_RecordID = 0;
+   int_Count = 0;
+   int_Total = 0;
+   int_Completed = 0;
+   int_Status = 0;
+   
+   // Clear undo stack
+   undo_stack = new Array();
+   undo_index = -1;
+   
+   // Clear result
+   gID("resultField").innerHTML = "";
+   
+   // Show/hide UI elements based on mode
+   var optTable = gID("optTable");
+   if (int_SortMode === 1) {
+      // Album mode - hide checkboxes and image toggle
+      if (optTable) optTable.style.display = "none";
+      var optImage = gID("optImage");
+      if (optImage) optImage.parentNode.style.display = "none";
+      gID("fldMiddleT").innerHTML = "coldrain Album Rank";
+   } else {
+      // Song mode - show checkboxes and image toggle
+      if (optTable) optTable.style.display = "block";
+      var optImage = gID("optImage");
+      if (optImage) optImage.parentNode.style.display = "inline";
+      gID("fldMiddleT").innerHTML = "coldrain Song Sort";
+   }
+   
+   gID("fldMiddleB").innerHTML = "Click to start!";
+   gID("lblCount").innerHTML = "-";
+   gID("lblProgress").innerHTML = "0";
+}
+
+// Album sorting display function
+function fnc_ShowDataAlbum() {
+   gID("lblCount").innerHTML = int_Count;
+   gID("lblProgress").innerHTML = Math.floor(int_Completed * 100 / int_Total);
+   if (!bln_ProgessBar) eGR(sID, Math.floor(int_Completed * 100 / int_Total));
+
+   if (int_Status == 2) {
+      // Sorting complete - show results
+      var int_Result = 1;
+      var tbl_Result = cE('table');
+      tbl_Result.classList.add('resTable');
+
+      var tbl_head_Result = cE('thead');
+      tbl_Result.appendChild(tbl_head_Result);
+
+      new_row = tbl_head_Result.insertRow(tbl_head_Result.rows.length);
+
+      // Col[0]
+      new_cell = new_row.insertCell(new_row.childNodes.length);
+      sC(new_cell, 'resTableH');
+      new_cell.appendChild(cT('Order'));
+      // Col[1]
+      new_cell = new_row.insertCell(new_row.childNodes.length);
+      sC(new_cell, 'resTableH');
+      new_cell.appendChild(cT('Album/EP'));
+
+      var tbl_body_Result = cE('tbody');
+      tbl_Result.appendChild(tbl_body_Result);
+
+      var int_Same = 1;
+      var obj_SelectItem = gID("resultField");
+      obj_SelectItem.innerHTML = "";
+      obj_SelectItem.appendChild(tbl_Result);
+
+      for (i=0; i<ary_TempData.length; i++) {
+         var rowId = i;
+         new_row = tbl_body_Result.insertRow(tbl_body_Result.rows.length);
+
+         // Col[0]
+         new_cell = new_row.insertCell(new_row.childNodes.length);
+         sC(new_cell, 'resTableL');
+         new_cell.appendChild(cT(int_Result));
+         
+         // Col[1]
+         new_cell = new_row.insertCell(new_row.childNodes.length);
+         sC(new_cell, 'resTableR');
+
+         var bln_imgFlag = false;
+         if ((int_ResultImg != 0) && (i < int_ResultRank)) {
+            var new_img = cE('img');
+            var obj_TempData = ary_TempData[ary_SortData[0][i]];
+
+            if (obj_TempData[2].length > 0) {
+               new_img.src = str_ImgPath + obj_TempData[2];
+               new_cell.appendChild(new_img);
+               new_cell.appendChild(cE('br'));
+               bln_imgFlag = true;
+            }
+         }
+
+         if ((int_ResultImg == 2) || (!bln_imgFlag)) {
+            new_cell.appendChild(cT(ary_TempData[ary_SortData[0][i]][1]));
+         }
+
+         if (i < ary_TempData.length - 1) {
+            if (bln_ResultMode == 0) {
+               if (ary_EqualData[ary_SortData[0][i]] == ary_SortData[0][i + 1]) {
+                  int_Result++;
+               }
+            } else {
+               if (ary_EqualData[ary_SortData[0][i]] == ary_SortData[0][i + 1]) {
+                  int_Same++;
+               } else {
+                  int_Result += int_Same;
+                  int_Same = 1;
+               }
+            }
+         }
+
+         // Break up results into a new table after every [maxRows] results
+         var cutoff = int_ResultRank - 1;
+         if (rowId >= cutoff &&
+             rowId == cutoff ||
+             (rowId - cutoff) % maxRows == 0) {
+
+             tbl_Result = cE('table');
+             tbl_Result.classList.add('resTable');
+             tbl_body_Result = cE('tbody');
+             tbl_Result.appendChild(tbl_body_Result);
+             obj_SelectItem.appendChild(tbl_Result);
+         }
+      }
+
+      if (bln_ResultStyle == 1) {
+         gID("mainTable").style.display = 'none';
+      }
+      if (bln_ResultStyle == 0) {
+         gID("ranTable").style.display = 'inline';
+      }
+
+   } else {
+      // Sorting in progress - show comparison
+      for (i=0; i<2; i++) {
+         var obj_SelectItem = gID((i == 0) ? "fldLeft" : "fldRight");
+         var obj_TempData = ary_TempData[ary_SortData[(i == 0) ? int_LeftList : int_RightList][(i == 0) ? int_LeftID : int_RightID]];
+         
+         obj_SelectItem.innerHTML = "";
+         
+         var new_img = cE("img");
+         new_img.src = str_ImgPath + obj_TempData[2];
+         new_img.title = obj_TempData[1];
+         obj_SelectItem.appendChild(new_img);
+         
+         var name_span = cE("span");
+         name_span.appendChild(cT(obj_TempData[1]));
+         name_span.classList.add('songName');
+         obj_SelectItem.appendChild(name_span);
+      }
+
+      int_Count++;
+   }
 }
