@@ -46,6 +46,7 @@ var ary_CharacterData = [
 [1, "CHASING SHADOWS", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
 [1, "OPTIMIZE", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
 [1, "DIGITOLL", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
+[1, "EX-HUMANITY", [0,1,0,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_o.jpg"],
 
 // Through Clarity
 [1, "No Escape", [0,0,1,0,0,0,0,0,0,0,0,0,0,0], "crsong/cr_tc.jpg"],
