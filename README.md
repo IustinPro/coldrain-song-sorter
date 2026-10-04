@@ -12,6 +12,8 @@ Not affiliated with coldrain or their label.
 [r/coldrain_jp](https://www.reddit.com/r/coldrain_jp/) &middot;
 [coldrain.jp](https://coldrain.jp/)
 
+https://iustinpro.github.io/coldrain-song-sorter/
+
 ---
 
 ## What you can do
