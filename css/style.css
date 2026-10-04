@@ -1,0 +1,1534 @@
+/* coldrain Fan Hub
+ *
+ * One stylesheet. No preprocessor, no build step, no utility classes, no
+ * framework. Just a thousand lines of CSS and a colour called --accent.
+ *
+ * House rules, learned the hard way:
+ *   - Everything animates from a keyframe with backwards fill, never from
+ *     an opacity:0 sitting in the base rule, or reduced-motion users get a
+ *     blank page. Ask me how I know.
+ *   - Staggers come in as --d from whatever rendered the row. No :nth-child
+ *     ladders going to fourteen.
+ *   - The whole thing is dark only. There is no light mode. The band is
+ *     called coldrain and the site is black. That is the design document.
+ */
+
+:root {
+  --bg:         #000000;
+  --surface:    #08090c;
+  --card:       #0e0f14;
+  --card-hi:    #14161c;
+  --border:     rgba(255,255,255,.10);
+  --border-hi:  rgba(255,255,255,.20);
+
+  --accent:     #3d6bf0;
+  --accent-hi:  #6d90ff;
+  --accent-dim: rgba(61,107,240,.12);
+  --green:      #3fae5a;
+  --red:        #e04545;
+  --amber:      #e0a030;
+
+  --text:       #f1f2f5;
+  --muted:      #797e8f;
+
+  --font-display: 'Anton', Impact, system-ui, sans-serif;
+  --font-ui:      'Space Grotesk', system-ui, sans-serif;
+
+  --radius:    10px;
+  --radius-sm: 6px;
+  --nav-h:     58px;
+  --bn-h:      62px;
+  --gutter:    18px;
+  --safe-l:    env(safe-area-inset-left);
+  --safe-r:    env(safe-area-inset-right);
+  --safe-b:    env(safe-area-inset-bottom);
+}
+
+/* The reset. Four lines, because that is genuinely all anyone needs. */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-ui);background:var(--bg);color:var(--text);
+  min-height:100vh;min-height:100dvh;overflow-x:hidden;line-height:1.5;
+  -webkit-font-smoothing:antialiased
+}
+img{display:block;max-width:100%}
+button{
+  cursor:pointer;border:none;background:none;font:inherit;color:inherit;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent
+}
+a{color:inherit;text-decoration:none}
+input,textarea{font:inherit}
+ul,ol{list-style:none}
+
+/* An almost invisible film grain, inlined as an SVG so it costs no request.
+   You will not consciously see it. Turn it off and the whole site
+   immediately looks like a slide deck. */
+body::before{
+  content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:200px 200px;opacity:.35
+}
+
+#app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+
+/* ---------- Home background ---------- */
+/* Two rows of sleeves drifting opposite ways under a heavy veil, so it
+   reads as texture rather than as content you are supposed to click. Only
+   on the home view, and the second row goes on phones because two of them
+   scrolling at once is a nice way to cook a budget device. */
+.home-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  opacity:0;transition:opacity .5s ease
+}
+body.on-home .home-bg{opacity:1}
+.home-bg-glow{
+  position:absolute;left:50%;top:24%;width:min(720px,130vw);height:min(720px,130vw);
+  border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(61,107,240,.24),transparent 62%);
+  filter:blur(60px);animation:glowDrift 16s ease-in-out infinite
+}
+@keyframes glowDrift{
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.55}
+  50%    {transform:translate(-45%,-56%) scale(1.18);opacity:1}
+}
+.home-bg-row{
+  position:absolute;left:0;display:flex;width:max-content;
+  will-change:transform;animation:bgSlide 64s linear infinite
+}
+#home-bg-row-1{top:9%}
+#home-bg-row-2{bottom:11%}
+.home-bg-row.reverse{animation-duration:86s;animation-direction:reverse}
+@keyframes bgSlide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* Margin on the item, NOT gap on the row. With gap, the row is not an exact
+   multiple of the item width and the -50% loop jumps half a gap every time
+   it wraps. It is a nine pixel jump once a minute and it will haunt you. */
+.home-bg-art{
+  width:112px;height:112px;flex-shrink:0;margin-right:18px;border-radius:8px;
+  background-size:cover;background-position:center;
+  filter:grayscale(1) contrast(.85);opacity:.17
+}
+.home-bg-veil{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 38%,transparent 2%,rgba(0,0,0,.72) 68%),
+    linear-gradient(to bottom,#000,transparent 20%,transparent 80%,#000)
+}
+
+/* ---------- Motion ---------- */
+/* Three keyframes doing all the work on the entire site. A list arriving in
+   sequence reads better than a list that simply exists, and the delay comes
+   in as --d from whatever rendered the row so there are no :nth-child
+   ladders anywhere. Backwards fill keeps things hidden until their turn
+   instead of flashing first. All of it dies under reduced motion. */
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(10px)}
+  to  {opacity:1;transform:none}
+}
+@keyframes popIn{
+  from{opacity:0;transform:scale(.94)}
+  to  {opacity:1;transform:none}
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(-8px)}
+  to  {opacity:1;transform:none}
+}
+.stagger{animation:riseIn .42s cubic-bezier(.22,.9,.3,1) backwards;animation-delay:var(--d,0ms)}
+
+/* ---------- Type ---------- */
+.page-head{margin-bottom:24px}
+.page-title{
+  font-family:var(--font-display);font-size:clamp(28px,7vw,40px);
+  line-height:.95;letter-spacing:.01em;text-transform:uppercase
+}
+.page-sub{font-size:14px;color:var(--muted);margin-top:8px;max-width:46ch}
+.dimmed{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* One line of help that has earned its place. Tips can appear mid-screen
+   while you are looking at it, so they get a small entrance rather than
+   just materialising like a bug. */
+.tip{
+  display:flex;gap:10px;align-items:baseline;
+  font-size:12.5px;line-height:1.55;color:var(--muted);
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--border);border-left:2px solid var(--accent);
+  border-radius:var(--radius-sm);padding:11px 14px;margin:18px 0;
+  animation:tipIn .3s ease
+}
+@keyframes tipIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.tip::before{
+  content:'TIP';flex-shrink:0;font-size:9px;font-weight:700;
+  letter-spacing:.16em;color:var(--accent)
+}
+.tip-text{flex:1;min-width:0}
+.tip-x{
+  flex-shrink:0;align-self:flex-start;margin:-3px -5px 0 0;
+  width:24px;height:24px;border-radius:var(--radius-sm);
+  color:var(--muted);font-size:16px;line-height:1;opacity:.5;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s,color .15s
+}
+.tip-x:hover{opacity:1;color:var(--text)}
+/* Sits flush against whatever is under it, and vanishes when empty */
+.tip-slot-snug .tip{margin:0 0 18px}
+.tip.snug{margin:14px auto 0;max-width:420px}
+
+/* ---------- Top nav ---------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);
+  background:rgba(0,0,0,.88);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  padding:0 calc(16px + var(--safe-r)) 0 calc(16px + var(--safe-l))
+}
+.nav-logo{display:flex;align-items:center;flex-shrink:0}
+.nav-logo-img{
+  height:30px;width:30px;object-fit:contain;border-radius:4px;
+  opacity:.85;transition:opacity .2s
+}
+.nav-logo:hover .nav-logo-img{opacity:1}
+.nav-links{display:flex;align-items:center;gap:4px;flex:1;overflow:hidden}
+.nav-link{
+  position:relative;padding:8px 12px;border-radius:var(--radius-sm);
+  font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);transition:color .15s;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent
+}
+.nav-link:hover{color:var(--text)}
+.nav-link.active{color:var(--text)}
+.nav-link.active::after{
+  content:'';position:absolute;left:12px;right:12px;bottom:2px;
+  height:2px;background:var(--accent);border-radius:2px;
+  animation:underlineIn .28s cubic-bezier(.22,.9,.3,1)
+}
+@keyframes underlineIn{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
+.nav-help{
+  margin-left:auto;flex-shrink:0;width:28px;height:28px;border-radius:50%;
+  border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s,color .15s
+}
+.nav-help:hover{border-color:var(--accent);color:var(--accent)}
+.nav-profile{
+  flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--border);
+  padding:7px 14px;border-radius:var(--radius-sm);
+  transition:border-color .15s,color .15s;white-space:nowrap;
+  max-width:130px;overflow:hidden;text-overflow:ellipsis
+}
+.nav-profile:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---------- Views ---------- */
+.view{
+  position:relative;z-index:1;
+  display:none;flex:1;width:100%;max-width:760px;margin:0 auto;
+  padding:calc(var(--nav-h) + 26px) calc(var(--gutter) + var(--safe-r))
+          56px calc(var(--gutter) + var(--safe-l))
+}
+.view.active{display:block;overflow-x:clip;animation:viewIn .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes viewIn{
+  from{opacity:0;transform:translateY(14px) scale(.995)}
+  to  {opacity:1;transform:none}
+}
+/* heading first, everything else a beat behind, like it means it */
+.view.active .page-head{animation:riseIn .45s cubic-bezier(.2,.9,.3,1) 40ms backwards}
+.view.active .page-sub{animation:riseIn .45s cubic-bezier(.2,.9,.3,1) 130ms backwards}
+
+/* ---------- Home ---------- */
+.hero{text-align:center;padding:22px 0 36px}
+/* The mark is wider and thinner than the old file, so it needs a little
+   more width to carry the same weight on the page. */
+.hero-logo{
+  width:min(340px,80vw);height:auto;margin:0 auto 16px;
+  animation:logoIn .8s cubic-bezier(.22,.9,.3,1) backwards
+}
+@keyframes logoIn{
+  from{opacity:0;transform:translateY(-10px) scale(.97);filter:blur(4px)}
+  to  {opacity:1;transform:none;filter:none}
+}
+.hero-sub{animation:riseIn .5s ease .18s backwards}
+.hero-sub{
+  font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)
+}
+
+.hero-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hero-card{
+  display:flex;align-items:center;gap:14px;cursor:pointer;
+  width:100%;text-align:left;font:inherit;color:inherit;
+  background:rgba(14,15,20,.82);backdrop-filter:blur(6px);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 18px;cursor:pointer;opacity:0;
+  transition:border-color .2s,background .2s,transform .2s,box-shadow .2s;
+  animation:cardIn .4s ease forwards
+}
+.hero-card:nth-child(1){animation-delay:.04s}
+.hero-card:nth-child(2){animation-delay:.10s}
+.hero-card:nth-child(3){animation-delay:.16s}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.hero-card:hover{
+  border-color:var(--accent);background:var(--card-hi);
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1px var(--accent-dim)
+}
+.hero-card:active{transform:scale(.99)}
+.hero-card.featured{grid-column:1 / -1}
+.hero-card-icon{font-size:24px;flex-shrink:0}
+.hero-card-body{flex:1;min-width:0}
+.hero-card-title{
+  font-family:var(--font-display);font-size:17px;letter-spacing:.02em;
+  text-transform:uppercase;line-height:1.1;margin-bottom:5px
+}
+.hero-card-desc{font-size:12.5px;color:var(--muted);line-height:1.45}
+.hero-card-go{color:var(--accent);font-size:18px;flex-shrink:0;transition:transform .2s}
+.hero-card:hover .hero-card-go{transform:translateX(4px)}
+
+/* ---------- Buttons ---------- */
+.cta-btn{
+  position:relative;overflow:hidden;display:inline-block;
+  background:var(--accent);color:#fff;font-weight:700;font-size:12px;
+  letter-spacing:.11em;text-transform:uppercase;
+  padding:13px 26px;border-radius:var(--radius-sm);
+  transition:background .15s,transform .1s
+}
+.cta-btn::after{
+  content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(115deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:skewX(-20deg);transition:left .5s ease
+}
+.cta-btn:hover::after{left:130%}
+.cta-btn:hover{background:var(--accent-hi)}
+.cta-btn:active{transform:scale(.97)}
+.cta-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.ghost-btn{
+  display:inline-block;border:1px solid var(--border);color:var(--muted);
+  font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  padding:11px 22px;border-radius:var(--radius-sm);
+  transition:border-color .15s,color .15s
+}
+.ghost-btn:hover{border-color:var(--text);color:var(--text)}
+.ghost-btn.full-w{width:100%;text-align:center}
+
+.danger-btn{
+  display:inline-block;border:1px solid rgba(224,69,69,.35);color:var(--red);
+  font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  padding:11px 22px;border-radius:var(--radius-sm);
+  transition:background .15s;margin-top:18px
+}
+.danger-btn:hover{background:rgba(224,69,69,.1)}
+
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--border);
+  color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s,color .15s,transform .1s
+}
+.icon-btn:hover:not(:disabled){border-color:var(--text);color:var(--text)}
+.icon-btn:active:not(:disabled){transform:scale(.9)}
+.icon-btn:disabled{opacity:.25;cursor:not-allowed}
+
+/* ---------- Inputs ---------- */
+.text-input{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--text);padding:12px 15px;font-size:14px;outline:none;
+  transition:border-color .15s,background .15s;width:100%
+}
+.text-input::placeholder{color:var(--muted)}
+.text-input:focus{border-color:var(--accent);background:var(--card-hi)}
+
+/* ---------- Sorter setup ---------- */
+.sorter-setup{padding-bottom:20px}
+.mode-toggle{display:flex;gap:8px;margin-bottom:16px}
+.mode-btn{
+  flex:1;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);transition:border-color .15s,color .15s,background .15s
+}
+.mode-btn:hover{border-color:var(--border-hi);color:var(--text)}
+.mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+
+.optimized-toggle{
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+  font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent
+}
+.optimized-toggle input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.optimized-toggle .dimmed{display:inline;font-size:12px}
+
+.resume-banner{
+  animation:riseIn .4s ease;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--accent-dim);border:1px solid rgba(61,107,240,.3);
+  border-radius:var(--radius-sm);padding:13px 16px;margin-bottom:14px
+}
+.resume-text{display:flex;align-items:center;gap:9px;font-size:13px}
+.resume-icon{font-size:16px}
+.resume-btn{
+  flex-shrink:0;background:var(--accent);color:#fff;font-weight:700;font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;
+  border-radius:var(--radius-sm);white-space:nowrap;transition:background .15s
+}
+.resume-btn:hover{background:var(--accent-hi)}
+.prev-result-banner{
+  display:block;width:100%;text-align:left;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:8px;
+  cursor:pointer;transition:border-color .15s,color .15s
+}
+.prev-result-banner:hover{border-color:var(--accent);color:var(--text)}
+
+.filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.filter-label{
+  font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)
+}
+.select-all-btn{
+  font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);border:1px solid rgba(61,107,240,.3);
+  padding:6px 11px;border-radius:var(--radius-sm);transition:background .15s
+}
+.select-all-btn:hover{background:var(--accent-dim)}
+.album-filters{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.album-check{position:relative}
+.album-check input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;z-index:2}
+.check-pill{
+  display:flex;flex-direction:column;justify-content:flex-end;height:82px;
+  border-radius:var(--radius-sm);border:2px solid transparent;
+  overflow:hidden;position:relative;background-size:cover;background-position:center;
+  filter:grayscale(1) brightness(.65);transition:border-color .15s,filter .2s
+}
+.check-pill::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.88),transparent 62%)
+}
+.check-pill-label{
+  position:relative;z-index:1;font-size:10px;font-weight:700;line-height:1.25;
+  color:#fff;padding:7px 8px 3px;text-shadow:0 1px 4px rgba(0,0,0,.9)
+}
+.check-pill-year{
+  position:relative;z-index:1;font-size:9px;font-weight:600;letter-spacing:.1em;
+  color:rgba(255,255,255,.6);padding:0 8px 7px
+}
+.album-check input:checked + .check-pill{border-color:var(--accent);filter:none}
+.album-check input:checked + .check-pill{animation:pillPop .3s ease}
+@keyframes pillPop{40%{transform:scale(1.045)}100%{transform:scale(1)}}
+.album-check input:focus-visible + .check-pill{outline:2px solid var(--accent-hi);outline-offset:2px}
+.check-pill:hover{filter:grayscale(.4) brightness(.85)}
+.album-check input:checked + .check-pill:hover{filter:none}
+.filter-hint{font-size:12px;color:var(--muted);margin-bottom:16px}
+
+.sort-warning{
+  font-size:12.5px;color:var(--amber);line-height:1.5;
+  background:rgba(224,160,48,.08);border:1px solid rgba(224,160,48,.3);
+  border-radius:var(--radius-sm);padding:11px 15px;margin-bottom:18px
+}
+
+/* ---------- Sorter battle ---------- */
+.battle-header{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.battle-skips{
+  font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);text-align:center;margin-bottom:16px
+}
+.battle-skips[hidden]{display:none}
+.battle-skips span{color:var(--accent)}
+.battle-stat{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.battle-stat strong{display:inline-block;color:var(--text);font-size:13px}
+.battle-stat strong.bump{animation:statBump .25s ease}
+@keyframes statBump{0%{transform:scale(1.35);color:var(--accent)}100%{transform:scale(1)}}
+.progress-bar-wrap{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.progress-bar-fill{
+  height:100%;border-radius:2px;transition:width .55s cubic-bezier(.2,.9,.3,1);
+  background:linear-gradient(90deg,var(--accent),var(--accent-hi),var(--accent));
+  background-size:200% 100%;animation:shimmer 2.4s linear infinite
+}
+@keyframes shimmer{to{background-position:-200% 0}}
+
+.battle-arena{
+  position:relative;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;
+  align-items:center;margin-bottom:16px
+}
+.battle-arena::before{
+  content:'';position:absolute;inset:-30px;z-index:-1;
+  background:radial-gradient(circle,rgba(61,107,240,.16),transparent 65%);
+  filter:blur(30px);animation:ambientPulse 4s ease-in-out infinite
+}
+@keyframes ambientPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.battle-card{
+  background:var(--card);border:2px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;cursor:pointer;user-select:none;text-align:left;
+  transition:border-color .2s,transform .15s;
+  animation:cardFloat 3.6s ease-in-out infinite
+}
+#card-right{animation-delay:.4s}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.battle-card:hover{border-color:var(--accent);transform:translateY(-3px);animation-play-state:paused}
+.battle-card:active{transform:scale(.97)}
+.battle-card.flip{opacity:0;transform:scale(.94);transition:opacity .18s,transform .18s;animation-play-state:paused}
+.battle-card.picked{animation:cardFloat 3.6s ease-in-out infinite,pickFlash .45s cubic-bezier(.2,.9,.3,1)}
+#card-right.picked{animation-delay:.4s,0s}
+@keyframes pickFlash{
+  0%  {box-shadow:0 0 0 0 rgba(61,107,240,.85);border-color:var(--accent-hi)}
+  45% {box-shadow:0 0 0 12px rgba(61,107,240,.12);border-color:var(--accent-hi)}
+  100%{box-shadow:0 0 0 22px rgba(61,107,240,0);border-color:var(--accent)}
+}
+.battle-card-img{width:100%;padding-top:100%;background-size:cover;background-position:center}
+.battle-card-name{padding:11px;font-size:13px;font-weight:600;text-align:center;line-height:1.3}
+.battle-middle{display:flex;flex-direction:column;align-items:center;gap:10px}
+.undo-redo{display:flex;gap:6px}
+.key-hints{font-size:10px;color:var(--muted);letter-spacing:.06em}
+
+/* ---------- Sorter result ---------- */
+.result-wrap{padding-bottom:20px}
+.podium{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.podium-card{text-align:center;opacity:0;animation:podiumIn .45s ease forwards}
+.podium-card:nth-child(1){animation-delay:.08s}
+.podium-card:nth-child(2){animation-delay:.2s}
+.podium-card:nth-child(3){animation-delay:.32s}
+@keyframes podiumIn{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}
+.podium-img{
+  width:100%;padding-top:100%;border-radius:var(--radius-sm);
+  background-size:cover;background-position:center;border:2px solid transparent
+}
+.podium-1 .podium-img{border-color:var(--accent)}
+.podium-2 .podium-img{border-color:#9aa0ad}
+.podium-3 .podium-img{border-color:#a0522d}
+.podium-img{transition:transform .25s cubic-bezier(.22,.9,.3,1)}
+.podium-card:hover .podium-img{transform:translateY(-4px) scale(1.03)}
+.podium-medal{font-size:20px;margin:8px 0 3px}
+.podium-title{font-size:11.5px;font-weight:600;line-height:1.3}
+.rank-table{width:100%;border-collapse:collapse;margin-bottom:22px}
+.rank-table tr{
+  border-bottom:1px solid var(--border);transition:background .15s;
+  animation:slideIn .3s ease backwards;animation-delay:var(--d,0ms)
+}
+.rank-table tr:hover{background:rgba(255,255,255,.03)}
+.rank-table td{padding:10px 8px;font-size:13px}
+.rank-num{color:var(--accent);font-weight:700;width:42px}
+.result-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- Name The Songs ---------- */
+.guess-bar{
+  position:sticky;top:var(--nav-h);z-index:20;
+  background:rgba(0,0,0,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  margin:0 calc(-1 * (var(--gutter) + var(--safe-r))) 20px
+         calc(-1 * (var(--gutter) + var(--safe-l)));
+  padding:14px calc(var(--gutter) + var(--safe-r)) 14px calc(var(--gutter) + var(--safe-l))
+}
+.guess-form{display:flex;gap:10px;margin-bottom:12px}
+.guess-form .text-input{flex:1;min-width:0}
+.guess-input.hit{border-color:var(--green)}
+.guess-input.miss{border-color:var(--red);animation:shake .3s ease}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.guess-meter{display:flex;align-items:center;gap:12px}
+.guess-count-wrap{flex-shrink:0}
+.guess-count{
+  font-family:var(--font-display);font-size:20px;letter-spacing:.02em;line-height:1;white-space:nowrap
+}
+.guess-count.bump{animation:statBump .25s ease}
+.guess-count span{color:var(--muted);font-size:14px}
+.guess-track{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.guess-track-fill{
+  height:100%;width:0;border-radius:2px;transition:width .55s cubic-bezier(.2,.9,.3,1);
+  background:linear-gradient(90deg,var(--accent),var(--accent-hi))
+}
+.guess-best{
+  font-size:10px;color:var(--muted);white-space:nowrap;
+  letter-spacing:.12em;font-weight:700;margin-top:4px
+}
+.guess-best:empty{display:none}
+.guess-time{
+  flex-shrink:0;font-family:var(--font-display);font-size:18px;line-height:1;
+  color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em
+}
+
+.guess-albums{display:grid;grid-template-columns:1fr;gap:12px}
+.guess-album{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;transition:border-color .3s,box-shadow .3s;
+  animation:riseIn .42s cubic-bezier(.22,.9,.3,1) backwards;animation-delay:var(--d,0ms)
+}
+.guess-album.complete{box-shadow:0 0 0 1px rgba(63,174,90,.18)}
+.guess-album.complete{border-color:rgba(63,174,90,.45)}
+.guess-album-head{display:flex;align-items:center;gap:13px;padding:13px 15px}
+.guess-album-art{
+  width:52px;height:52px;flex-shrink:0;border-radius:var(--radius-sm);
+  background-size:cover;background-position:center;
+  filter:grayscale(1) brightness(.5);transition:filter .45s ease
+}
+.guess-album.complete .guess-album-art{filter:none}
+.guess-album-meta{flex:1;min-width:0}
+.guess-album-title{
+  font-family:var(--font-display);font-size:15px;letter-spacing:.02em;
+  text-transform:uppercase;line-height:1.15;margin-bottom:7px
+}
+.guess-album-tag{
+  display:inline-block;vertical-align:2px;margin-left:7px;
+  font-family:var(--font-ui);font-size:9px;font-weight:700;letter-spacing:.13em;
+  color:var(--muted);border:1px solid var(--border);border-radius:3px;padding:2px 6px
+}
+.guess-album-progress{display:flex;align-items:center;gap:9px}
+.guess-album-track{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.guess-album-fill{height:100%;width:0;background:var(--accent);border-radius:2px;transition:width .35s ease}
+.guess-album.complete .guess-album-fill{background:var(--green)}
+.guess-album-count{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;letter-spacing:.04em}
+.guess-album.complete .guess-album-count{color:var(--green)}
+
+.guess-songs{border-top:1px solid var(--border);padding:8px 15px 14px}
+.guess-song{
+  font-size:13px;padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.05);
+  display:flex;align-items:center;gap:9px
+}
+.guess-song:last-child{border-bottom:none}
+.guess-song .idx{
+  font-size:10px;color:var(--muted);min-width:18px;font-variant-numeric:tabular-nums;opacity:.6
+}
+.guess-song.masked .title{color:var(--muted);letter-spacing:.12em;opacity:.45;font-size:12px}
+.guess-song{transition:background .2s}
+.guess-song .title{transition:color .3s,opacity .3s,letter-spacing .3s}
+.guess-song.found .title{color:var(--text)}
+.guess-song.found .idx{color:var(--green);opacity:1}
+.guess-song.revealed .title{color:var(--muted);font-style:italic}
+.guess-song.just-found{animation:foundFlash .7s ease}
+@keyframes foundFlash{
+  0%  {background:rgba(63,174,90,.34);transform:translateX(9px)}
+  55% {background:rgba(63,174,90,.14)}
+  100%{background:transparent;transform:none}
+}
+
+.guess-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.guess-done{
+  text-align:center;padding:20px;margin-bottom:20px;
+  background:var(--accent-dim);border:1px solid rgba(61,107,240,.3);border-radius:var(--radius)
+}
+.guess-done h3{font-family:var(--font-display);font-size:22px;text-transform:uppercase;margin-bottom:6px}
+.guess-done p{font-size:13px;color:var(--muted);margin-bottom:14px}
+
+/* ---------- Result cards ---------- */
+/* The bit that leaves the site. Sized to fit one phone screen whole, so a
+   screenshot needs no scrolling and no cropping, and built as one frame the
+   three cards share. The blurred sleeve behind the header is doing most of
+   the work: it is why every card comes out a different colour without a
+   single hardcoded hue anywhere. */
+.rc{
+  position:relative;overflow:hidden;isolation:isolate;
+  max-width:420px;margin:0 auto 18px;
+  background:#08090d;border:1px solid rgba(255,255,255,.13);
+  border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,.6);
+  animation:cardRise .5s cubic-bezier(.2,.9,.3,1)
+}
+@keyframes cardRise{
+  from{opacity:0;transform:translateY(14px) scale(.985)}
+  to  {opacity:1;transform:none}
+}
+.rc-glow{
+  position:absolute;left:-25%;right:-25%;top:-30%;height:74%;z-index:-1;
+  background-size:cover;background-position:center;
+  filter:blur(52px) saturate(1.5);opacity:.42;
+  -webkit-mask-image:linear-gradient(#000 10%,transparent 92%);
+          mask-image:linear-gradient(#000 10%,transparent 92%)
+}
+.rc-inner{position:relative;padding:22px;text-align:center}
+
+.rc-brand{
+  display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:20px
+}
+.rc-mark{width:17px;height:17px;border-radius:4px;opacity:.9}
+.rc-brand span{
+  font-size:8.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(255,255,255,.55)
+}
+
+.rc-kicker{
+  font-size:9px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--accent-hi);margin-bottom:5px
+}
+.rc-title{
+  font-family:var(--font-display);font-size:clamp(24px,7.5vw,31px);line-height:.98;
+  text-transform:uppercase;letter-spacing:.01em;
+  overflow-wrap:anywhere
+}
+.rc-tag{
+  font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin-top:7px
+}
+.rc-rule{
+  height:1px;margin:16px 0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)
+}
+
+/* Ranked rows. Top three get the accent and a bigger sleeve, the rest step
+   back, which is the whole reason it reads as a chart and not a list. */
+.rc-list{text-align:left}
+.rc-row{
+  display:flex;align-items:center;gap:11px;padding:4px 0;
+  animation:slideIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.rc-rank{
+  font-family:var(--font-display);font-size:13px;min-width:19px;text-align:right;
+  color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums
+}
+.rc-row.hi .rc-rank,.rc-track.hi .rc-rank{color:var(--accent-hi);font-size:15px}
+.rc-art{
+  width:28px;height:28px;border-radius:4px;flex-shrink:0;
+  background-size:cover;background-position:center
+}
+.rc-row.hi .rc-art{
+  width:38px;height:38px;box-shadow:0 0 0 1px rgba(109,144,255,.5)
+}
+.rc-name{font-size:12.5px;font-weight:600;line-height:1.25;min-width:0}
+.rc-row.hi .rc-name{font-size:13.5px}
+
+/* A single release: sleeve once at size, then bare rows in two columns so
+   sixteen tracks do not turn the card into a receipt. */
+.rc-cover{
+  width:104px;height:104px;margin:0 auto 16px;border-radius:8px;
+  background-size:cover;background-position:center;
+  box-shadow:0 10px 26px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.1)
+}
+.rc-tracks{text-align:left}
+.rc-tracks.two{
+  display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;
+  gap:0 16px;align-content:start
+}
+.rc-track{
+  display:flex;align-items:baseline;gap:8px;padding:3px 0;
+  animation:slideIn .35s ease backwards;animation-delay:var(--d,0ms)
+}
+.rc-tracks .rc-name{font-size:11.5px;font-weight:500}
+.rc-track.hi .rc-name{font-weight:700}
+
+/* Name The Songs */
+.rc-score{
+  font-family:var(--font-display);font-size:clamp(46px,15vw,58px);line-height:.86;
+  letter-spacing:.01em
+}
+.rc-score span{font-size:.4em;color:var(--muted);margin-left:2px}
+.rc-verdict{font-size:12px;color:var(--muted);margin-top:8px}
+.rc-stats{display:flex;justify-content:center;gap:26px;margin-bottom:18px}
+.rc-stat-v{
+  display:block;font-family:var(--font-display);font-size:18px;line-height:1;
+  font-variant-numeric:tabular-nums
+}
+.rc-stat-v em{font-style:normal;font-size:.62em;color:var(--muted)}
+.rc-stat-l{
+  display:block;font-size:8px;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);margin-top:6px
+}
+/* Seven across, so thirteen sleeves fall as 7 + 6 rather than stranding
+   one lonely tile on a third row. Yes I counted. Twice. */
+.rc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+
+/* Save, copy, link. Sits right under the card and matches its width, so the
+   card and its buttons read as one object rather than a card and some
+   buttons that happen to be nearby. */
+.rc-actions{
+  display:flex;gap:8px;flex-wrap:wrap;
+  max-width:420px;margin:0 auto 10px
+}
+.rc-actions .cta-btn,.rc-actions .ghost-btn{
+  flex:1 1 0;min-width:110px;text-align:center;padding-left:10px;padding-right:10px
+}
+.rc-after{max-width:420px;margin:0 auto;justify-content:center}
+.rc-tile{
+  width:100%;padding-top:100%;border-radius:3px;
+  background-size:cover;background-position:center;
+  filter:grayscale(1) brightness(.3);transition:filter .5s ease;
+  animation:popIn .35s ease backwards;animation-delay:var(--d,0ms)
+}
+.rc-tile.done{filter:none;box-shadow:0 0 0 1px rgba(255,255,255,.16)}
+
+/* ---------- Profile ---------- */
+.profile-wrap{padding-bottom:28px}
+.profile-header{display:flex;align-items:center;gap:15px;margin-bottom:24px}
+.profile-avatar{
+  width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;
+  font-family:var(--font-display);font-size:22px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  animation:popIn .45s cubic-bezier(.22,.9,.3,1)
+}
+.profile-header h2{
+  font-family:var(--font-display);font-size:24px;text-transform:uppercase;
+  letter-spacing:.01em;line-height:1.1
+}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;
+  transition:border-color .2s,transform .2s;
+  animation:riseIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.stat-card:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.stat-val{font-family:var(--font-display);font-size:30px;line-height:1;color:var(--accent)}
+.stat-of{font-size:15px;color:var(--muted)}
+.stat-label{
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-top:8px
+}
+.ranking-section{margin-bottom:22px}
+.ranking-section h3{
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin:20px 0 10px
+}
+.mini-rank li{
+  font-size:13px;padding:9px 0;border-bottom:1px solid var(--border);
+  display:flex;gap:10px;
+  animation:slideIn .3s ease backwards;animation-delay:var(--d,0ms)
+}
+.rank-n{color:var(--accent);font-weight:700;min-width:26px;flex-shrink:0}
+.no-rank{padding:6px 0}
+.name-edit{display:flex;gap:10px;margin-bottom:22px}
+
+/* Someone else's profile. Amber and loud on purpose: there must never be a
+   half second where you think those numbers are yours. */
+.guest-bar{
+  animation:riseIn .4s ease;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(224,160,48,.08);border:1px solid rgba(224,160,48,.35);
+  border-radius:var(--radius-sm);padding:12px 15px;margin-bottom:20px
+}
+.guest-bar-text{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+.guest-tag{
+  flex-shrink:0;font-size:9px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--amber)
+}
+.guest-bar .resume-btn{background:var(--amber);color:#12100a}
+.guest-bar .resume-btn:hover{background:#f0b445}
+.profile-avatar.guest{background:var(--amber);color:#12100a}
+
+/* ---------- Profile insights ---------- */
+/* Two bar charts and a couple of sleeves. One hue throughout (the accent,
+   which clears 3:1 against the black page), values printed as text beside
+   every bar, and the bars grow in from the left so the page feels like it
+   is working something out rather than just appearing. */
+.fav-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:28px}
+.fav{
+  display:flex;align-items:center;gap:13px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;min-width:0;
+  animation:riseIn .45s cubic-bezier(.2,.9,.3,1) backwards;animation-delay:var(--d,0ms)
+}
+.fav-art{
+  width:54px;height:54px;flex-shrink:0;border-radius:var(--radius-sm);
+  background-size:cover;background-position:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.5)
+}
+.fav-meta{min-width:0;display:flex;flex-direction:column}
+.fav-label{
+  font-size:8.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent-hi)
+}
+.fav-title{
+  font-family:var(--font-display);font-size:17px;text-transform:uppercase;
+  line-height:1.1;margin-top:4px;overflow-wrap:break-word
+}
+
+.insight{margin-bottom:30px}
+.insight h3{
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px
+}
+.insight-note{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;max-width:58ch}
+.insight-empty{margin:4px 0 26px}
+
+.pbars{display:flex;flex-direction:column;gap:2px}
+.pbar-row{
+  display:grid;grid-template-columns:30px minmax(0,150px) 1fr 38px;
+  grid-template-areas:"art name track val" "art n track val";
+  column-gap:11px;align-items:center;padding:5px 0;
+  animation:slideIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.pbar-art{
+  grid-area:art;width:30px;height:30px;border-radius:4px;
+  background-size:cover;background-position:center
+}
+.pbar-name{
+  grid-area:name;font-size:12px;font-weight:600;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.pbar-n{grid-area:n;font-size:9.5px;color:var(--muted);letter-spacing:.04em}
+.pbar-track{
+  grid-area:track;height:8px;border-radius:2px;
+  background:rgba(255,255,255,.06);overflow:hidden
+}
+.pbar-fill{
+  display:block;height:100%;border-radius:0 4px 4px 0;background:var(--accent);
+  transform-origin:left center;transition:background .2s;
+  animation:barGrow .75s cubic-bezier(.2,.9,.3,1) backwards;
+  animation-delay:calc(var(--d,0ms) + 120ms)
+}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:none}}
+.pbar-row:hover .pbar-fill{background:var(--accent-hi)}
+.pbar-val{
+  grid-area:val;font-size:12px;font-weight:700;color:var(--muted);
+  text-align:right;font-variant-numeric:tabular-nums
+}
+.pbar-row:hover .pbar-val{color:var(--text)}
+
+/* ---------- Seed ---------- */
+.seed-section{margin-bottom:14px}
+.seed-section h3{
+  font-family:var(--font-display);font-size:17px;text-transform:uppercase;
+  letter-spacing:.02em;margin-bottom:8px
+}
+.seed-section .dimmed{margin-bottom:12px}
+.cta-btn.full-w{display:block;width:100%;text-align:center}
+.seed-box{position:relative;margin:12px 0 10px}
+.seed-code{
+  display:block;width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--muted);padding:11px 46px 11px 13px;
+  font-size:11px;font-family:ui-monospace,monospace;resize:none;height:60px;outline:none;
+  line-break:anywhere;white-space:pre-wrap
+}
+.seed-copy-btn{
+  position:absolute;top:9px;right:9px;width:30px;height:30px;border-radius:var(--radius-sm);
+  background:var(--accent-dim);color:var(--accent);font-size:15px;
+  display:flex;align-items:center;justify-content:center;transition:background .15s
+}
+.seed-copy-btn:hover{background:rgba(61,107,240,.24)}
+
+.dev-link{
+  display:block;margin:16px auto 0;font-size:11px;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  text-decoration:underline;text-underline-offset:3px
+}
+.dev-link:hover{color:var(--text)}
+/* ---------- Info ---------- */
+/* A Wikipedia article, if Wikipedia were black and had opinions about
+   letter spacing. Contents in a sticky sidebar on a wide screen, a sticky
+   bar with a dropdown on anything narrower, and an infobox floated right
+   with the prose wrapping round it, like the real thing, which I have now
+   studied more closely than any lecture I ever attended. */
+#view-info{max-width:1160px;--prose:#b2b6c2}
+
+@media(min-width:1000px){
+  .wiki{display:grid;grid-template-columns:236px minmax(0,1fr);gap:52px;align-items:start}
+}
+.wiki-body{min-width:0;max-width:800px}
+
+/* Contents. Built from the headings in JS, lit up as you scroll past them. */
+.toc{position:sticky;top:calc(var(--nav-h) + 26px);z-index:5}
+.toc-list,.toc-list ol{list-style:none;margin:0;padding:0}
+.toc-list ol{margin:1px 0 5px}
+.toc-list a{
+  display:flex;gap:9px;align-items:baseline;
+  padding:5px 10px 5px 12px;border-left:2px solid var(--border);
+  font-size:12.5px;line-height:1.35;color:var(--muted);
+  transition:color .15s,border-color .15s,background .15s
+}
+.toc-list a.sub{padding-left:22px;font-size:11.5px}
+.toc-list a:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.toc-list a.on{color:var(--text);border-left-color:var(--accent);background:var(--accent-dim)}
+.toc-list a.on-parent{color:var(--text);border-left-color:rgba(61,107,240,.5)}
+.toc-n{
+  flex-shrink:0;min-width:14px;font-size:10px;color:var(--muted);opacity:.7;
+  font-variant-numeric:tabular-nums
+}
+.toc-list a.sub .toc-n{min-width:24px}
+.toc-list a.on .toc-n{color:var(--accent-hi);opacity:1}
+.toc-t{min-width:0}
+.toc-bar:focus-visible,.toc-list a:focus-visible{outline:2px solid var(--accent-hi);outline-offset:-2px}
+
+@media(min-width:1000px){
+  .toc-bar{display:none}
+  .toc::before{
+    content:'Contents';display:block;padding:0 0 10px 14px;
+    font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)
+  }
+  .toc-list{
+    position:relative;max-height:calc(100vh - var(--nav-h) - 80px);overflow-y:auto;
+    overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:10px
+  }
+}
+
+/* Narrower than that, the sidebar becomes a bar stuck under the nav that
+   tells you where you are, and opens into the full list. */
+@media(max-width:999.98px){
+  .toc{
+    top:var(--nav-h);
+    margin:-10px calc(-1 * (var(--gutter) + var(--safe-r))) 22px calc(-1 * (var(--gutter) + var(--safe-l)));
+    padding:0 calc(var(--gutter) + var(--safe-r)) 0 calc(var(--gutter) + var(--safe-l));
+    background:rgba(0,0,0,.9);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border)
+  }
+  .toc-bar{display:flex;align-items:center;gap:12px;width:100%;height:46px;text-align:left}
+  .toc-label{
+    flex-shrink:0;font-size:9.5px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent)
+  }
+  .toc-now{
+    flex:1;min-width:0;font-size:12.5px;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  }
+  .toc-chev{
+    flex-shrink:0;font-size:18px;color:var(--muted);
+    transform:rotate(90deg);transition:transform .22s cubic-bezier(.22,.9,.3,1)
+  }
+  .toc.open .toc-chev{transform:rotate(-90deg);color:var(--accent)}
+  .toc-list{
+    display:none;position:absolute;left:0;right:0;top:100%;
+    max-height:min(70vh,540px);overflow-y:auto;overscroll-behavior:contain;
+    padding:10px calc(var(--gutter) + var(--safe-r)) 16px calc(var(--gutter) + var(--safe-l));
+    background:var(--surface);border-bottom:1px solid var(--border);
+    box-shadow:0 22px 44px rgba(0,0,0,.7)
+  }
+  .toc.open .toc-list{display:block;animation:tocDrop .22s cubic-bezier(.22,.9,.3,1)}
+}
+@keyframes tocDrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* otherwise the fixed header, and on a phone the contents bar too, eats the
+   exact heading you just jumped to */
+.wiki-body [id]{scroll-margin-top:calc(var(--nav-h) + 22px)}
+@media(max-width:999.98px){.wiki-body [id]{scroll-margin-top:calc(var(--nav-h) + 64px)}}
+
+.hatnote{
+  font-size:12.5px;font-style:italic;color:var(--muted);line-height:1.55;
+  margin-top:12px;padding-left:12px;border-left:2px solid var(--border);max-width:62ch
+}
+.hatnote a{color:var(--accent);font-style:normal}
+
+/* Infobox. Floated right, so the lede wraps round it like it is supposed to. */
+.infobox{
+  float:right;width:282px;margin:4px 0 22px 28px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 14px 16px;
+  animation:riseIn .45s cubic-bezier(.2,.9,.3,1) 80ms backwards
+}
+.ib-name{
+  font-family:var(--font-display);font-size:19px;text-transform:uppercase;
+  letter-spacing:.02em;text-align:center;margin-bottom:10px
+}
+.ib-art{background:rgba(0,0,0,.45);border-radius:var(--radius-sm);padding:16px 14px}
+.ib-art img{width:100%;height:auto}
+.ib-group{
+  font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--text);background:var(--accent-dim);border-radius:4px;
+  padding:6px 8px;text-align:center;margin:14px 0 10px
+}
+.ib-rows{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;
+  font-size:11.5px;line-height:1.45
+}
+.ib-rows dt{
+  font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding-top:2px
+}
+.ib-rows dd{color:var(--text)}
+.ib-rows a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.ib-list{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.75;text-align:center;color:var(--text)}
+
+/* Prose. Not --muted, which is fine for a label and miserable for four
+   thousand words. */
+.wiki-body > p,.wk-sec p{font-size:14px;color:var(--prose);line-height:1.75;margin-bottom:13px}
+.wiki-body > p a,.wk-sec p a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.wiki-body > p a:hover,.wk-sec p a:hover{color:var(--accent-hi)}
+.wiki-body i{font-style:italic}
+.info-lede{font-size:16px!important;line-height:1.65!important;color:var(--text)!important}
+.info-lede strong{font-weight:700}
+
+.wk-sec{margin-top:44px}
+.wk-sec.clear{clear:right}
+.wk-sec h3{
+  font-family:var(--font-display);font-size:24px;text-transform:uppercase;
+  letter-spacing:.02em;line-height:1.05;
+  padding-bottom:10px;margin-bottom:16px;border-bottom:1px solid var(--border)
+}
+.wk-sec h4{
+  font-size:15px;font-weight:700;color:var(--text);line-height:1.35;
+  margin:32px 0 10px;letter-spacing:.005em
+}
+.wk-sec h3 + h4,.wk-sec h3 + p + h4{margin-top:8px}
+
+/* Quotes, set like quotes */
+.wk-quote{margin:20px 0 22px;padding:3px 0 3px 18px;border-left:2px solid var(--accent)}
+.wk-quote p{
+  font-size:14.5px!important;line-height:1.65!important;color:var(--text)!important;
+  font-style:italic;margin-bottom:8px!important;max-width:64ch
+}
+.wk-quote.big p{font-size:17px!important;line-height:1.55!important}
+.wk-quote cite{
+  font-style:normal;font-size:10.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted)
+}
+
+/* Footnote markers, square brackets and all, because that is the law */
+sup.ref{font-size:9.5px;line-height:0;vertical-align:super;margin-left:1px;font-style:normal}
+sup.ref a{color:var(--accent)!important;text-decoration:none!important;padding:0 1px}
+sup.ref a::before{content:'['}
+sup.ref a::after{content:']'}
+sup.ref a:hover{color:var(--accent-hi)!important}
+
+.ref-list{list-style:decimal;margin:0;padding-left:24px;font-size:12.5px;line-height:1.6;color:var(--prose)}
+.ref-list li{padding:5px 8px;border-radius:4px}
+.ref-list li::marker{color:var(--muted);font-variant-numeric:tabular-nums}
+.ref-list a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.ref-list li.flash{animation:refFlash 1.8s ease}
+@keyframes refFlash{0%,35%{background:rgba(61,107,240,.22)}100%{background:transparent}}
+.wk-notes{margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.wk-notes p{font-size:12.5px!important;color:var(--muted)!important}
+
+/* Tables. Wikitables, minus the grey, minus the 2004. Each one scrolls
+   sideways inside its own box on a phone instead of dragging the whole
+   page sideways with it. */
+.wt-wrap{
+  overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0 8px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  animation:riseIn .4s ease backwards
+}
+.wt{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.wt caption{
+  caption-side:bottom;text-align:left;font-size:10.5px;color:var(--muted);
+  padding:8px 12px;border-top:1px solid var(--border)
+}
+.wt th,.wt td{
+  padding:9px 12px;text-align:left;vertical-align:top;white-space:nowrap;
+  border-bottom:1px solid rgba(255,255,255,.05)
+}
+.wt tbody tr:last-child th,.wt tbody tr:last-child td{border-bottom:none}
+.wt thead th{
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);background:rgba(255,255,255,.035);vertical-align:bottom;
+  border-bottom:1px solid var(--border)
+}
+.wt thead small{display:block;font-size:8.5px;font-weight:600;letter-spacing:.05em;opacity:.8;margin-top:2px}
+.wt tbody th{font-weight:600;color:var(--text);white-space:normal;min-width:150px}
+.wt td{color:var(--prose)}
+.wt .n{text-align:right}
+.wt td.n{color:var(--text);font-weight:600}
+.wt td.nc{color:var(--muted);font-weight:400;opacity:.55}
+.wt td.dim{color:var(--muted)}
+.wt tbody tr{transition:background .15s}
+.wt tbody tr:hover{background:rgba(255,255,255,.03)}
+.wt .res.won{color:var(--green);font-weight:700}
+.wt .res.nom{color:var(--amber)}
+
+.wk-fig{
+  margin:16px 0 8px;padding:16px 16px 12px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,.02)
+}
+.wk-fig figcaption{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:4px}
+.wk-fig .chart{margin:0 0 10px}
+
+/* Chart peaks. Rank runs backwards, so the bar is log(100/peak): a full
+   track is a number one, an empty one is a number hundred. Every bar prints
+   its own position too, so nobody has to measure a rectangle. */
+.chart-row{
+  display:flex;align-items:center;gap:12px;padding:5px 0;
+  animation:slideIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.chart-label{width:132px;flex-shrink:0;text-align:right}
+.chart-album{display:block;font-size:12px;font-weight:600;line-height:1.25}
+.chart-year{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.chart-track{
+  flex:1;min-width:0;display:flex;align-items:center;gap:9px;
+  background:linear-gradient(to right,rgba(255,255,255,.05),rgba(255,255,255,.05));
+  background-size:100% 10px;background-position:left center;background-repeat:no-repeat;
+  border-radius:2px
+}
+.chart-bar{
+  height:10px;border-radius:0 4px 4px 0;background:var(--accent);
+  transform-origin:left;animation:barGrow .7s cubic-bezier(.22,.9,.3,1) backwards;
+  animation-delay:var(--d,0ms);transition:background .2s
+}
+.chart-row:hover .chart-bar{background:var(--accent-hi)}
+.chart-val{font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
+.chart-row:hover .chart-val{color:var(--text)}
+.chart-axis{display:flex;align-items:center;gap:12px;margin-top:8px}
+.chart-axis::before{content:'';width:132px;flex-shrink:0}
+.chart-axis-line{position:relative;flex:1;height:14px;border-top:1px solid var(--border)}
+.chart-tick{position:absolute;top:3px;font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chart-axis-label{
+  font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap
+}
+
+/* Five people, five cards, five small biographies */
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px;margin:14px 0 6px}
+.member-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:16px;
+  transition:border-color .2s,transform .2s;
+  animation:popIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.member-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.member-tag{
+  font-family:var(--font-display);font-size:20px;text-transform:uppercase;
+  letter-spacing:.02em;color:var(--accent);line-height:1
+}
+.member-full{font-size:12.5px;font-weight:600;color:var(--text);margin-top:8px;line-height:1.3}
+.member-role{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.35}
+.wk-sec .member-bio{
+  font-size:12px;line-height:1.6;margin:11px 0 0;padding-top:11px;
+  border-top:1px solid rgba(255,255,255,.06)
+}
+
+/* Where they have been */
+.tour-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}
+.tour-cols h4{margin-top:10px}
+.tour-list{list-style:none;margin:0;padding:0}
+.tour-list li{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.05)
+}
+.tour-list li:last-child{border-bottom:none}
+.tour-what{font-size:12.5px;color:var(--text)}
+.tour-year{font-size:10.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:8px;margin-top:12px}
+.fest{
+  display:flex;flex-direction:column;padding:12px 13px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,.02);
+  transition:border-color .2s,transform .2s;
+  animation:popIn .35s ease backwards;animation-delay:var(--d,0ms)
+}
+.fest:hover{border-color:var(--accent);transform:translateY(-2px)}
+.fest-year{font-family:var(--font-display);font-size:19px;color:var(--accent);line-height:1}
+.fest-name{font-size:12.5px;font-weight:600;line-height:1.3;margin-top:7px}
+.fest-where{font-size:10.5px;color:var(--muted);margin-top:3px}
+
+/* Who sang on what */
+.guest-list{display:flex;flex-direction:column;margin-top:10px}
+.guest-row{
+  display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:2px 12px;
+  align-items:center;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.05);
+  animation:slideIn .35s ease backwards;animation-delay:var(--d,0ms)
+}
+.guest-row:last-child{border-bottom:none}
+.guest-year{font-size:10.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;grid-row:span 2}
+.guest-track{font-size:13.5px;font-weight:600;grid-row:span 2}
+.guest-who{font-size:12.5px;color:var(--text);text-align:right}
+.guest-band{
+  grid-column:3;font-size:10px;color:var(--muted);text-align:right;
+  letter-spacing:.06em;text-transform:uppercase
+}
+
+/* Numbered cards, so it reads as a collection rather than as homework */
+.trivia-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:9px}
+.trivia-card{
+  position:relative;background:rgba(255,255,255,.025);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 14px 14px 42px;transition:border-color .2s;
+  animation:riseIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.trivia-card:hover{border-color:var(--border-hi)}
+.trivia-n{
+  position:absolute;left:14px;top:13px;
+  font-family:var(--font-display);font-size:15px;color:var(--accent);opacity:.7;line-height:1
+}
+.wk-sec .trivia-card p{font-size:12.5px;line-height:1.6;margin:0}
+
+/* Full discography, folded away. Native details and summary, because a
+   hand-rolled accordion is three bugs in a trench coat and this one gets
+   keyboard support and find-in-page for free. */
+.disco{display:flex;flex-direction:column;margin-top:8px}
+.disco-item{border-bottom:1px solid rgba(255,255,255,.05)}
+.disco-item:last-child{border-bottom:none}
+.disco-item summary{
+  display:flex;align-items:center;gap:12px;padding:10px 2px;cursor:pointer;
+  list-style:none;transition:padding-left .18s
+}
+.disco-item summary::-webkit-details-marker{display:none}
+.disco-item summary:hover{padding-left:6px}
+.disco-item summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.disco-art{
+  width:36px;height:36px;flex-shrink:0;border-radius:4px;
+  background-size:cover;background-position:center;
+  filter:grayscale(.5) brightness(.85);transition:filter .25s
+}
+.disco-item[open] .disco-art,.disco-item summary:hover .disco-art{filter:none}
+.disco-meta{flex:1;min-width:0}
+.disco-title{display:block;font-size:13px;font-weight:600;line-height:1.25}
+.disco-tag{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:3px}
+.disco-chev{color:var(--muted);font-size:17px;flex-shrink:0;transition:transform .22s cubic-bezier(.22,.9,.3,1)}
+.disco-item[open] .disco-chev{transform:rotate(90deg);color:var(--accent)}
+.disco-tracks{list-style:none;padding:2px 2px 14px 48px;animation:riseIn .28s ease}
+.disco-tracks li{font-size:12px;color:var(--muted);padding:3px 0;display:flex;gap:10px;align-items:baseline}
+.disco-n{font-size:9.5px;color:var(--muted);opacity:.55;min-width:15px;font-variant-numeric:tabular-nums;flex-shrink:0}
+
+/* A spine with a marker per release. The year sits outside the line so you
+   can run down the dates on their own without reading a single title. */
+.timeline{position:relative;padding-left:2px;margin-top:6px}
+.tl-item{
+  position:relative;display:grid;grid-template-columns:42px 18px 1fr;align-items:center;
+  padding:7px 0;animation:slideIn .4s ease backwards;animation-delay:var(--d,0ms)
+}
+.tl-item::before{content:'';position:absolute;left:50px;top:0;bottom:0;width:1px;background:var(--border)}
+.tl-item:first-child::before{top:50%}
+.tl-item:last-child::before{bottom:50%}
+.tl-year{font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.tl-marker{
+  position:relative;z-index:1;justify-self:center;width:7px;height:7px;border-radius:50%;
+  background:var(--bg);box-shadow:0 0 0 2px var(--border-hi)
+}
+.tl-item:hover .tl-marker{box-shadow:0 0 0 2px var(--accent)}
+/* Singles get a smaller filled marker, so the spine still reads as the run
+   of actual releases with the one-offs hanging off it */
+.tl-item.single .tl-marker{width:5px;height:5px;background:var(--border-hi);box-shadow:none}
+.tl-item.single:hover .tl-marker{background:var(--accent);box-shadow:none}
+.tl-item.single .tl-art{width:32px;height:32px}
+.tl-item.single .tl-title{font-size:12.5px;color:var(--muted)}
+.tl-item.single:hover .tl-title{color:var(--text)}
+.tl-body{display:flex;align-items:center;gap:11px;min-width:0;padding-left:6px}
+.tl-art{
+  width:38px;height:38px;flex-shrink:0;border-radius:5px;background-size:cover;background-position:center;
+  filter:grayscale(.5) brightness(.8);transition:filter .25s,transform .25s
+}
+.tl-item:hover .tl-art{filter:none;transform:scale(1.06)}
+.tl-meta{min-width:0}
+.tl-title{font-size:13px;font-weight:600;line-height:1.25}
+.tl-sub{font-size:10.5px;color:var(--muted);letter-spacing:.03em;margin-top:3px}
+
+/* Rows, not pills. The pills looked funny and had nowhere to explain that
+   the Discord is somebody else's server. */
+.link-list{display:flex;flex-direction:column}
+.wk-sec .link-heading{
+  font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin:18px 0 4px
+}
+.wk-sec .link-heading:first-child{margin-top:0}
+.link-row{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.05);
+  transition:padding-left .18s,border-color .18s
+}
+.link-row:hover{padding-left:8px;border-color:var(--border)}
+.link-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.link-name{font-size:13.5px;font-weight:600;color:var(--text);flex-shrink:0;text-decoration:none}
+.link-row:hover .link-name{color:var(--accent-hi)}
+.link-note{font-size:11.5px;color:var(--muted);margin-left:auto;text-align:right}
+.link-row::after{
+  content:'\2197';font-size:11px;color:var(--muted);opacity:.4;
+  flex-shrink:0;transition:opacity .18s,transform .18s
+}
+.link-row:hover::after{opacity:1;transform:translate(2px,-2px)}
+
+.dev-link{margin-bottom:6px}
+
+/* ---------- Modal ---------- */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);
+  align-items:center;justify-content:center;padding:20px
+}
+.modal-overlay.open{display:flex;animation:viewIn .2s ease}
+.modal-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;width:100%;max-width:340px;max-height:86vh;max-height:86dvh;overflow-y:auto
+}
+.modal-box h3{
+  font-family:var(--font-display);font-size:20px;text-transform:uppercase;
+  letter-spacing:.02em;margin-bottom:16px
+}
+.controls-list li{
+  display:flex;align-items:center;gap:12px;padding:9px 0;
+  border-bottom:1px solid var(--border);font-size:13px
+}
+.controls-list li:last-child{border-bottom:none;margin-bottom:18px}
+.controls-key{flex-shrink:0;min-width:66px;display:flex;gap:4px}
+kbd{
+  display:inline-block;background:var(--surface);border:1px solid var(--border);
+  border-radius:4px;padding:3px 7px;font-size:10.5px;font-family:ui-monospace,monospace;
+  color:var(--muted)
+}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--card-hi);border:1px solid var(--border-hi);border-radius:var(--radius-sm);
+  padding:11px 20px;font-size:13px;font-weight:600;max-width:88vw;
+  opacity:0;transition:opacity .25s,transform .25s;z-index:9999;pointer-events:none;
+  text-align:center
+}
+.toast{transform:translateX(-50%) translateY(12px) scale(.96)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+.toast.good{border-color:rgba(63,174,90,.5);color:var(--green)}
+.toast.error{border-color:rgba(224,69,69,.5);color:var(--red)}
+
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* The entire site is one big script, so with scripts off the page is a black
+   rectangle. Better to say so than to let someone conclude it is broken. */
+.noscript{
+  max-width:540px;margin:0 auto;
+  padding:calc(var(--nav-h) + 48px) var(--gutter) 48px;
+  font-size:14px;line-height:1.75;color:var(--muted);text-align:center
+}
+.noscript p{margin-bottom:12px}
+.noscript strong{color:var(--text)}
+
+/* Long titles wrap instead of pushing the layout off the side of a phone.
+   "Counterfeits & Lies (Re-Rec.)" in a 320px column is the test case. */
+.page-title,.hero-card-title,.battle-card-name,.guess-song .title,.guess-album-title,
+.tl-title,.disco-title,.chart-album,.member-full,.member-bio,.fest-name,.guest-track,
+.link-note,.info-lede,.ib-rows dd,.wk-quote p,.trivia-card p,.tour-what{
+  overflow-wrap:break-word;word-break:break-word
+}
+.link-row,.disco-item summary,.toc-list a,.toc-bar,.chart-row,.pbar-row,.tl-item{
+  -webkit-tap-highlight-color:transparent
+}
+
+/* One focus ring, applied everywhere, because tabbing through a site with
+   invisible focus is a uniquely hostile experience and I only noticed this
+   site had it about ten commits ago. */
+.cta-btn:focus-visible,.ghost-btn:focus-visible,.danger-btn:focus-visible,
+.icon-btn:focus-visible,.mode-btn:focus-visible,
+.nav-link:focus-visible,.nav-help:focus-visible,.nav-profile:focus-visible,
+.bn-item:focus-visible,.resume-btn:focus-visible,.select-all-btn:focus-visible,
+.seed-copy-btn:focus-visible,.dev-link:focus-visible,.hero-card:focus-visible,
+.prev-result-banner:focus-visible,.tip-x:focus-visible{
+  outline:2px solid var(--accent-hi);outline-offset:2px
+}
+.text-input:focus-visible{outline:none}
+
+/* ---------- Footer ---------- */
+.site-footer{
+  position:relative;z-index:1;
+  width:100%;max-width:760px;margin:0 auto;
+  padding:22px calc(var(--gutter) + var(--safe-r)) 34px calc(var(--gutter) + var(--safe-l))
+}
+.footer-note{
+  font-size:11px;line-height:1.6;color:var(--muted);opacity:.6;
+  max-width:52ch;margin:0 auto;text-align:center
+}
+
+/* ---------- Bottom nav (mobile) ---------- */
+.bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;
+  height:calc(var(--bn-h) + var(--safe-b));
+  padding:0 var(--safe-r) var(--safe-b) var(--safe-l);
+  background:rgba(0,0,0,.94);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border)
+}
+.bn-item{
+  flex:1;height:var(--bn-h);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;color:var(--muted);
+  transition:color .15s
+}
+.bn-icon{font-size:18px;line-height:1}
+.bn-label{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.bn-item.active{color:var(--accent)}
+.bn-item .bn-icon{transition:transform .22s cubic-bezier(.22,.9,.3,1)}
+.bn-item.active .bn-icon{transform:translateY(-2px) scale(1.12)}
+.bn-item:active .bn-icon{transform:scale(.9)}
+
+/* ---------- Phones ---------- */
+@media(max-width:700px){
+  :root{--gutter:15px}
+  .nav-links{display:none}
+  .bottom-nav{display:flex}
+  .view{padding-bottom:30px}
+  .site-footer{padding-bottom:calc(var(--bn-h) + var(--safe-b) + 26px)}
+  .toast{bottom:calc(var(--bn-h) + var(--safe-b) + 16px)}
+
+  /* iOS silently zooms into any field under 16px on focus, which yanks the
+     whole layout sideways mid-sentence. Sixteen it is. */
+  .text-input{font-size:16px}
+
+  /* the infobox stops floating well before a phone, or it eats the prose */
+  .infobox{float:none;width:auto;margin:0 0 24px}
+  .ib-art{max-width:320px;margin-inline:auto}
+  .toc{backdrop-filter:none;background:rgba(0,0,0,.97)}
+  .tour-cols{grid-template-columns:1fr}
+  .wk-sec h3{font-size:21px}
+
+  /* Backdrop blur is the single most expensive thing on this site and on a
+     mid-range phone it is the difference between smooth and not */
+  .nav,.bottom-nav,.guess-bar{backdrop-filter:none;background:rgba(0,0,0,.97)}
+  .hero-card{backdrop-filter:none}
+  .battle-arena::before{display:none}
+  .home-bg-glow{filter:blur(40px)}
+  #home-bg-row-2{display:none}
+  .home-bg-art{width:88px;height:88px}
+
+  .hero{padding:14px 0 30px}
+  .page-head{margin-bottom:20px}
+  .result-actions .cta-btn,.result-actions .ghost-btn,
+  .guess-actions .ghost-btn{flex:1;text-align:center}
+}
+
+/* On a narrow phone the middle column squeezes the sleeves down to nothing,
+   so it goes underneath and the cards get the whole width */
+@media(max-width:430px){
+  .hero-cards{grid-template-columns:1fr}
+  .pbar-row{
+    grid-template-columns:30px 1fr 38px;
+    grid-template-areas:"art name val" "art track track" "art n n";
+    row-gap:4px
+  }
+  .rc-actions .cta-btn{flex-basis:100%}
+  .guest-row{grid-template-columns:38px minmax(0,1fr)}
+  .guest-track{grid-row:auto}
+  .guest-who,.guest-band{grid-column:2;text-align:left}
+  /* the label column eats a narrow screen, so stack it over the bar */
+  .chart-row{flex-direction:column;align-items:stretch;gap:5px;padding:8px 0}
+  .chart-label{width:auto;text-align:left;display:flex;align-items:baseline;gap:8px}
+  .chart-year{margin-top:0}
+  .chart-axis::before{display:none}
+  .fest-grid{grid-template-columns:1fr 1fr}
+  .wt th,.wt td{padding:8px 10px}
+  .disco-tracks{padding-left:16px}
+  .wk-quote.big p{font-size:15.5px!important}
+  .battle-arena{grid-template-columns:1fr 1fr;gap:9px}
+  .battle-middle{
+    grid-column:1 / -1;flex-direction:row;justify-content:center;
+    gap:14px;margin-top:2px
+  }
+  .key-hints{display:none}
+  .podium-medal{font-size:17px}
+  .podium-title{font-size:10.5px}
+  .name-edit,.guess-form{flex-wrap:wrap}
+  .name-edit .cta-btn,.guess-form .cta-btn{flex:1}
+  .guess-meter{gap:9px}
+  .guess-count{font-size:18px}
+  .guess-time{font-size:16px}
+  .rc-inner{padding:20px 17px}
+  .rc-stats{gap:18px}
+  .rc-tracks.two{gap:0 12px}
+}
+
+/* No hover styling on touch, or the last thing you tapped stays lit up
+   like it is still selected, forever, until you tap something else */
+@media(hover:none){
+  .hero-card:hover{
+    transform:none;box-shadow:none;
+    background:rgba(14,15,20,.82);border-color:var(--border)
+  }
+  .hero-card:hover .hero-card-go{transform:none}
+  .battle-card:hover{transform:none;border-color:var(--border)}
+  .icon-btn{width:44px;height:44px}
+  .nav-help{width:32px;height:32px}
+  .tip-x{width:36px;height:36px;margin:-8px -9px -6px 0}
+  .seed-copy-btn{width:40px;height:40px;top:7px;right:7px}
+  .select-all-btn{padding:9px 13px}
+  .disco-item summary{padding:13px 2px}
+  .link-row{padding:13px 2px}
+  .toc-list a{padding-top:9px;padding-bottom:9px}
+}
+
+/* ---------- Wider screens ---------- */
+@media(min-width:560px){
+  .album-filters{grid-template-columns:repeat(3,1fr)}
+  .stat-grid{grid-template-columns:repeat(4,1fr)}
+  .check-pill{height:96px}
+  .check-pill-label{font-size:11px}
+  .battle-card-name{font-size:14px}
+  .guess-albums{grid-template-columns:1fr 1fr}
+}
+@media(min-width:760px){
+  .album-filters{grid-template-columns:repeat(4,1fr)}
+}
+
+/* Landscape phones: slimmer bars, icons only on the tab bar */
+@media(max-height:500px) and (orientation:landscape){
+  :root{--nav-h:48px;--bn-h:48px}
+  .bn-label{display:none}
+  .bn-icon{font-size:20px}
+  .hero{padding:8px 0 18px}
+  .hero-logo{width:min(240px,40vw)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  /* These two set opacity:0 in the base rule instead of in a keyframe,
+     so killing animations leaves them permanently invisible. Everything
+     written since does it properly. These two are the evidence. */
+  .hero-card{opacity:1}
+  .podium-card{opacity:1}
+}

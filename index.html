@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>coldrain Fan Hub</title>
+  <meta name="description" content="Rank coldrain songs and albums and name every track from memory. Unofficial fan site.">
+  <meta name="theme-color" content="#000000">
+  <link rel="canonical" href="https://iustinpro.github.io/coldrain-song-sorter/">
+
+  <!-- Link previews. Absolute URLs, because the scrapers that read these do not
+       run the page and will not resolve a relative one. The whole site is built
+       around sending people a link, so an unfurl that says nothing was a silly
+       thing to ship without. If the site ever moves, change these five. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="coldrain Fan Hub">
+  <meta property="og:url" content="https://iustinpro.github.io/coldrain-song-sorter/">
+  <meta property="og:title" content="coldrain Fan Hub">
+  <meta property="og:description" content="Rank the whole coldrain discography head to head, and see how many songs you can name from memory. Unofficial fan site.">
+  <meta property="og:image" content="https://iustinpro.github.io/coldrain-song-sorter/img/cr-icon.jpg">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="img/cr-icon.jpg">
+  <link rel="apple-touch-icon" href="img/cr-icon.jpg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="coldrain">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<noscript>
+  <!-- The home screen is plain markup, so it renders without scripts and then
+       does nothing when tapped. Hide it and leave only the explanation. -->
+  <style>#app{display:none}</style>
+  <div class="noscript">
+    <p><strong>This site needs JavaScript.</strong> The ranking, the guessing game
+      and the Info page are all built in your browser, so with scripts off there
+      is genuinely nothing here to show you.</p>
+    <p>Everything still runs locally once you allow it. There is no server, no
+      account and no tracking.</p>
+  </div>
+</noscript>
+
+<div id="app">
+
+  <!-- Album art drifting behind the home screen. Filled in by app.js. -->
+  <div class="home-bg" id="home-bg" aria-hidden="true">
+    <div class="home-bg-glow"></div>
+    <div class="home-bg-row" id="home-bg-row-1"></div>
+    <div class="home-bg-row reverse" id="home-bg-row-2"></div>
+    <div class="home-bg-veil"></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-logo" onclick="showView('home')" aria-label="Home">
+      <img src="img/cr-icon.jpg" alt="coldrain" class="nav-logo-img" width="30" height="30" decoding="async">
+    </button>
+    <div class="nav-links">
+      <a class="nav-link active" data-view="home"      onclick="showView('home')"      href="#">Home</a>
+      <a class="nav-link"        data-view="sorter"    onclick="showView('sorter')"    href="#">Rank</a>
+      <a class="nav-link"        data-view="songguess" onclick="showView('songguess')" href="#">Songs</a>
+      <a class="nav-link"        data-view="info"      onclick="showView('info')"      href="#">Info</a>
+    </div>
+    <button class="nav-help" onclick="toggleControls()" title="Controls" aria-label="Controls">?</button>
+    <button class="nav-profile" id="profile-badge" onclick="showView('profile')">Profile</button>
+  </nav>
+
+  <div class="modal-overlay" id="controls-modal" onclick="if(event.target===this) toggleControls()">
+    <div class="modal-box">
+      <h3>Controls</h3>
+      <ul class="controls-list">
+        <li><span class="controls-key"><kbd>&larr;</kbd></span><span>Pick the left song</span></li>
+        <li><span class="controls-key"><kbd>&rarr;</kbd></span><span>Pick the right song</span></li>
+        <li><span class="controls-key"><kbd>Ctrl</kbd>+<kbd>Z</kbd></span><span>Undo a pick</span></li>
+        <li><span class="controls-key"><kbd>Ctrl</kbd>+<kbd>Y</kbd></span><span>Redo a pick</span></li>
+        <li><span class="controls-key">Tap</span><span>Pick a song on touch devices</span></li>
+        <li><span class="controls-key">Type</span><span>Correct titles are accepted as you type</span></li>
+      </ul>
+      <button class="ghost-btn full-w" onclick="toggleControls()">Close</button>
+    </div>
+  </div>
+
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <img src="img/coldrain-logo.png" alt="coldrain" class="hero-logo" width="1200" height="230" fetchpriority="high" decoding="async">
+      <p class="hero-sub">Unofficial fan hub</p>
+    </div>
+
+    <div class="hero-cards" id="hero-cards">
+      <button type="button" class="hero-card featured" onclick="showView('sorter')">
+        <div class="hero-card-icon">&#127925;</div>
+        <div class="hero-card-body">
+          <div class="hero-card-title">Rank Songs</div>
+          <div class="hero-card-desc">Compare tracks two at a time and end up with a ranked list.</div>
+        </div>
+        <span class="hero-card-go">&rarr;</span>
+      </button>
+      <button type="button" class="hero-card" onclick="showView('songguess')">
+        <div class="hero-card-icon">&#128191;</div>
+        <div class="hero-card-body">
+          <div class="hero-card-title">Name The Songs</div>
+          <div class="hero-card-desc">Name as many tracks as you can from memory.</div>
+        </div>
+      </button>
+      <button type="button" class="hero-card" onclick="showView('profile')">
+        <div class="hero-card-icon">&#127942;</div>
+        <div class="hero-card-body">
+          <div class="hero-card-title">Profile</div>
+          <div class="hero-card-desc">Stats, album ranking and your backup seed.</div>
+        </div>
+      </button>
+    </div>
+
+  </section>
+
+  <section class="view" id="view-sorter">
+    <div id="sorter-content"></div>
+  </section>
+
+  <section class="view" id="view-songguess">
+    <div id="songguess-content"></div>
+  </section>
+
+  <section class="view" id="view-profile">
+    <div id="profile-content"></div>
+  </section>
+
+  <section class="view" id="view-info">
+    <div class="wiki">
+
+    <nav class="toc" id="toc" aria-label="Contents">
+      <button type="button" class="toc-bar" id="toc-bar" aria-expanded="false" aria-controls="toc-list">
+        <span class="toc-label">Contents</span>
+        <span class="toc-now" id="toc-now"></span>
+        <span class="toc-chev" aria-hidden="true">&rsaquo;</span>
+      </button>
+      <ol class="toc-list" id="toc-list"></ol>
+    </nav>
+
+    <article class="wiki-body" id="wiki-body">
+
+    <header class="page-head" id="i-top">
+      <h2 class="page-title">coldrain</h2>
+      <p class="hatnote">Adapted from the English Wikipedia articles on the band and on
+        Masato Hayakawa, with quotes taken from interviews. Sources are listed under
+        <a href="#i-refs">References</a>.</p>
+    </header>
+
+    <aside class="infobox" aria-label="Band summary">
+      <p class="ib-name">coldrain</p>
+      <div class="ib-art"><img src="img/coldrain-logo.png" alt="coldrain logo" width="1200" height="230" decoding="async"></div>
+      <p class="ib-group">Background information</p>
+      <dl class="ib-rows">
+        <dt>Origin</dt><dd>Nagoya, Aichi, Japan</dd>
+        <dt>Formed</dt><dd>17 April 2007</dd>
+        <dt>Genres</dt><dd>Post-hardcore, metalcore, nu metal, alternative metal, alternative rock, hard rock</dd>
+        <dt>Years active</dt><dd>2007 &ndash; present</dd>
+        <dt>Labels</dt><dd>VAP, Hopeless, Warner Music Japan, Sony Music, Century Media</dd>
+        <dt>Studio albums</dt><dd>7, with an eighth due 25 September 2026</dd>
+        <dt>Website</dt><dd><a href="https://coldrain.jp/" target="_blank" rel="noopener">coldrain.jp</a></dd>
+      </dl>
+      <p class="ib-group">Members</p>
+      <ul class="ib-list">
+        <li>Masato Hayakawa</li>
+        <li>Ryo Yokochi</li>
+        <li>Kazuya Sugiyama</li>
+        <li>Ryo Shimizu</li>
+        <li>Katsuma Minatani</li>
+      </ul>
+    </aside>
+
+    <p class="info-lede"><strong>coldrain</strong> (stylised in lowercase) are a Japanese
+      rock band from Nagoya, formed in 2007. Their music pairs melodic singing with the
+      screamed vocals of post-hardcore and metalcore, and although the band are Japanese,
+      every song they have released is written in English.</p>
+    <p>The lineup has not changed since the day the band formed: vocalist Masato Hayakawa,
+      guitarists Ryo Yokochi (Y.K.C.) and Kazuya Sugiyama (Sugi), bassist Ryo Shimizu
+      (RxYxO) and drummer Katsuma Minatani. Hayakawa has a Japanese father and an American
+      mother, and is fluent in both languages.</p>
+    <p>Their first two albums, <i>Final Destination</i> (2009) and <i>The Enemy Inside</i>
+      (2011), were released only in Japan. The band's worldwide debut came in 2014, when
+      Hopeless Records reissued their third album, <i>The Revelation</i>, a year after VAP
+      had released it at home. <i>Vena</i> (2015), <i>Fateless</i> (2017), <i>The Side
+      Effects</i> (2019) and <i>Nonnegative</i> (2022) followed. In 2025 they signed
+      worldwide with Century Media Records, and their eighth album, <i>OPTIMIZE =
+      OPTDEMISE</i>, is due on 25 September 2026.</p>
+    <p>Their best known songs include "Mayday", "Gone", "Coexist", "Paradise (Kill the
+      Silence)", "Vengeance", "Die Tomorrow", "No Escape", "The Revelation", "Envy" and
+      "Feed the Fire". Several reached a wider audience as anime and video game themes,
+      and since 2020 the band have hosted their own festival, Blare Fest, in Nagoya.</p>
+
+    <section class="wk-sec clear" aria-labelledby="i-history">
+      <h3 id="i-history">History</h3>
+
+      <h4 id="h-2007">2007 &ndash; 2008: Formation and major label debut</h4>
+      <p>coldrain grew out of two Nagoya bands that were rivals on the local circuit and
+        both near their end: Wheel of Life, with RxYxO, Sugi and Y.K.C., and AVER, the band
+        Masato and Katsuma started after their high school group, Script of Creation, split
+        up. What brought them together was taste. The first time the two bands shared a
+        bill, AVER heard Wheel of Life running a Sevendust song in rehearsal, and an excited
+        Katsuma went over to RxYxO: "Don't tell me you're a fan of Sevendust as well!?"
+        After that, every time they met, the talk turned to starting a band together.</p>
+      <p>coldrain formed on 17 April 2007, with Masato on vocals, Y.K.C. and Sugi on guitar,
+        Katsuma on drums, and RxYxO, until then a singer, moving to bass for the new group.
+        They found their first fans the hard way, playing school gyms and local clubs in
+        their hometown and handing out demo CDs after every show.</p>
+      <blockquote class="wk-quote">
+        <p>It's weird in Japan because you have to pay to play gigs, and it kills a lot of
+          artists. You try to find ways around it, like playing in the street and giving out
+          demos. We'd go to [a] ton of shows and give our demos to people outside the
+          venue.</p>
+        <cite>Masato, to Louder<sup class="ref"><a href="#r3">3</a></sup></cite>
+      </blockquote>
+      <p>About a year after forming, the band signed a major label deal with VAP. Their
+        debut maxi-single, "Fiction", came out on 5 November 2008, and they took it on their
+        first nationwide tour, thirty venues across Japan.</p>
+
+      <h4 id="h-2009">2009 &ndash; 2011: <i>Final Destination</i> and <i>The Enemy Inside</i></h4>
+      <p>A second maxi-single, "8AM", followed the tour. Its limited edition came with a DVD
+        of the title track's video and live footage of "Fiction", "Painting" and "Come
+        Awake", and the song became the ending theme of the anime <i>Hajime no Ippo: New
+        Challenger</i>, the band's first tie-in of any kind. That summer the band made their first appearance at Summer Sonic,
+        and in October 2009 they released their debut album, <i>Final Destination</i>. It
+        peaked at number 88 on the Oricon chart, and the tour behind it sold out.</p>
+      <p>Their first EP, <i>Nothing Lasts Forever</i>, was released on 23 June 2010. "We're
+        Not Alone" became the opening theme of the anime <i>Rainbow: Nisha Rokub&omacr; no
+        Shichinin</i>, and "Die Tomorrow" was picked for the <i>Pro Evolution Soccer
+        2011</i> soundtrack. The band spent the year on the road with acts including Mucc,
+        Avengers in Sci-Fi and Totalfat.</p>
+      <p>The second album, <i>The Enemy Inside</i>, arrived on 16 February 2011 and climbed
+        to number 21. It kept the melodic vocals and breakdowns of the earlier songs, and
+        SiM's vocalist MAH sang on "The Maze". That December the band released their first
+        DVD, <i>Three Days of Adrenaline</i>, filmed in Osaka, Nagoya and Tokyo: nineteen
+        live tracks, including all ten from the album, plus behind the scenes footage and
+        the videos for "To Be Alive" and "Rescue Me".</p>
+
+      <h4 id="h-2012">2012 &ndash; 2013: <i>The Revelation</i></h4>
+      <p>"No Escape" was released on 20 April 2012 and used in the official Japanese trailer
+        for <i>Resident Evil: Operation Raccoon City</i>. It led the EP <i>Through
+        Clarity</i> on 4 July, the first thing the band had recorded outside Japan, made in
+        the United States with producer David Bendeth, known for his records with Paramore,
+        All Time Low and A Day to Remember.</p>
+      <p>On 1 August the band announced that Katsuma was stepping away to be treated for a
+        chronic hereditary illness. Three drummers covered for him: ZAX of Pay Money to My
+        Pain, Tatsu of Crossfaith, and YOUTH-K!!! of BPM13GROOVE. coldrain still played
+        Summer Sonic that summer, and Katsuma came back on 4 November 2012, at a show with
+        Maximum the Hormone at Hiroshima University of Economics.</p>
+      <p>From December to February the band were back in the studio with Bendeth. In March
+        2013 they played Megaport Festival in Kaohsiung, Taiwan, to around five thousand
+        people, and on 17 April they released their third album, <i>The Revelation</i>.
+        It reached number 7 on the Oricon chart, still their highest placing. The Revelation
+        Tour opened in Chiba on 5 May, in the same venue where the band played Ozzfest Japan
+        a week later. Synth lines and strings appeared in the arrangements for the first
+        time, and Bendeth pulled the whole record somewhere heavier in mood.</p>
+      <blockquote class="wk-quote">
+        <p>David tried to make the record sound darker. He said, after listening to the
+          tracks and after listening to the lyrics, he always aimed for us to sound darker.
+          So it turned out a little darker than what we originally went for and I think it
+          sounds cool.</p>
+        <cite>Masato, to Mixdown<sup class="ref"><a href="#r6">6</a></sup></cite>
+      </blockquote>
+
+      <h4 id="h-2014">2014: Worldwide debut</h4>
+      <p>In December 2013 coldrain signed with Raw Power Management, the British company
+        behind Bullet for My Valentine, Bring Me the Horizon, Of Mice &amp; Men and
+        Crossfaith. It put them on Bullet for My Valentine's European tour with Chiodos in
+        February and March 2014, with UK headline dates of their own. <i>Through
+        Clarity</i> got a European release on 27 January, and their second DVD,
+        <i>Evolve</i>, filmed at a one-man show on 18 January, followed on 30 April, their
+        first release on Blu-ray.</p>
+      <p>On 9 April the band announced a deal with Hopeless Records to release <i>The
+        Revelation</i> worldwide, outside Asia, Australia and New Zealand, and Hopeless put
+        out the title track the same day. Masato's statement:</p>
+      <blockquote class="wk-quote">
+        <p>It's hard to put in words how excited and proud we are that The Revelation will
+          be released Worldwide. The dream we've had ever since we started playing music is
+          finally coming true. I can't wait for everyone to hear the songs, learn the words
+          and sing them with us live. We are grateful for the many fans in our homeland that
+          have supported us in becoming the band we are today. Without them this would have
+          been impossible. This step will be the biggest in our careers and we couldn't be
+          more ready.</p>
+        <cite>Masato, April 2014<sup class="ref"><a href="#r1">1</a></sup></cite>
+      </blockquote>
+      <p>The international edition came out on 23 June in Europe and 24 June in North
+        America, with Sony Music Australia following on 8 August. Five of its new tracks
+        came from <i>Until the End</i>, a six-song EP released in Japan on 18 June. That same
+        month the band played Rock am Ring, Rock im Park and Download Festival, and they were
+        booked for Australia's Soundwave the following year.</p>
+
+      <h4 id="h-2015">2015 &ndash; 2016: <i>Vena</i></h4>
+      <p>In June 2015 coldrain played Lunatic Fest, hosted by Luna Sea at Makuhari Messe, on
+        a bill with X Japan, Dir En Grey and Siam Shade. "Words of the Youth" and "Gone" came
+        out in August and September ahead of the fourth album, <i>Vena</i>, released on 21
+        October in Japan and two days later everywhere else. It was the first coldrain album
+        to go worldwide on day one, reaching number 9 in Japan and number 15 on the UK
+        Independent Breakers chart. Papa Roach's Jacoby Shaddix sang on "Runaway", an offer
+        that arrived by text.</p>
+      <blockquote class="wk-quote">
+        <p>We grew up listening to P-Roach. We got to tour with them and so far everything
+          about our relationship with them has been a dream come true. One day Jacoby texted
+          me to say, 'If you ever need a guest vocalist...' and I don't know if he was joking
+          or not, but I took that text seriously and took advantage of it!</p>
+        <cite>Masato, to Louder<sup class="ref"><a href="#r5">5</a></sup></cite>
+      </blockquote>
+      <p>In the early hours of 20 March 2016, while supporting Silverstein in the United
+        States, the band's bus crashed on the way from Texas to Oklahoma. Nobody was hurt,
+        but with no way of getting there they had to cancel the Tulsa show. A European
+        headline run with Wage War, The Charm the Fury and Counting Days followed in May,
+        from Paris on the 9th to Reading on the 27th, finishing at Slam Dunk Festival. That
+        summer they played the whole of Vans Warped Tour, and on 17 August they released the
+        maxi-single <i>Vena II</i>, with two new songs, "Born to Bleed" and "Undertow", and
+        acoustic takes on "Gone" and "The Story".</p>
+
+      <h4 id="h-2017">2017 &ndash; 2018: <i>Fateless</i></h4>
+      <p>The band marked ten years with <i>Fateless</i>, announced on 26 July 2017 and
+        released worldwide on 11 October. The limited edition carried a live CD of their
+        anniversary shows in Nagoya, "Feed the Fire" became the opening theme of <i>King's
+        Game The Animation</i>, and the album peaked at number 8. The Fateless Japan Tour
+        began on 29 October, took in fifteen venues, and ended on 6 February 2018 at the
+        Nippon Budokan. Filmed by Inni Vision, who had directed their videos before, the
+        show was released that September as <i>20180206 Live at Budokan</i>.</p>
+      <p>That autumn coldrain opened for Crown the Empire across Europe alongside Volumes,
+        from Brighton on 18 September to Amsterdam on 15 October. They also wrote
+        "Revolution", the main theme for <i>Mobile Suit Gundam: Extreme Vs. 2</i>, released
+        as a single on 12 December with a video following in January 2019. Days later
+        Masato announced the band were going back into the studio.</p>
+
+      <h4 id="h-2019">2019 &ndash; 2021: <i>The Side Effects</i></h4>
+      <p>In June 2019 the band toured Europe, playing Rock am Ring and Rock im Park and
+        closing on the Dogtooth Stage at Download. "Coexist" came out on 4 July with the
+        fastest-growing video they had released, and <i>The Side Effects</i> followed on 28
+        August, their first album since <i>The Revelation</i> not to arrive in October. It
+        reached number 10. Masato asked for "January 1st", a ballad that was deeply personal
+        to him, to get a video of its own, even though a song like that would not normally be
+        a single. "Mayday", with Ryo Kinoshita of Crystal Lake, became the opening theme of
+        <i>Fire Force</i>.</p>
+      <p>In November the band turned their yearly show, Blaredown Barriers, into a festival.
+        The first Blare Fest was held at Port Messe Nagoya on 1 and 2 February 2020, with
+        coldrain headlining both days above One Ok Rock, We Came as Romans, Fever 333,
+        Crossfaith and Crystal Lake, among others.</p>
+      <p>Weeks later the COVID-19 pandemic stopped everything. The band put their three live
+        DVDs on YouTube for free during lockdown, and on 4 September cancelled their show at
+        the 17,000 capacity Yokohama Arena, planned for 18 October, rather than play it with
+        the crowd held at a distance. "What we can promise now," Masato wrote, "is that we
+        will definitely do it someday." <i>Live &amp; Backstage at Blare Fest. 2020</i> came
+        out on 28 October instead. When shows came back in 2021, they toured Japan on a
+        "Setlist Election", with fans voting on the songs for each night.</p>
+
+      <h4 id="h-2021">2021 &ndash; 2024: <i>Nonnegative</i> and the re-recording</h4>
+      <p>"Paradise (Kill the Silence)", their first new song in two years, was released on 17
+        September 2021 with a twelve-venue tour of Japan behind it. In January 2022 the band
+        flew to the United States to make their seventh album with longtime producer Michael
+        Baskette. Sugi recorded his parts at home in Japan, having just become a father for
+        the first time. <i>Nonnegative</i> was released through Warner Music Japan on 6 July
+        2022 and reached number 15. Alongside "Calling", "Before I Go" and "Cut Me", it
+        carried "Bloody Power Fame", the opening theme of Netflix's <i>Bastard!!</i>, and a
+        cover of No Doubt's "Don't Speak".</p>
+      <p>Blare Fest returned on 4 and 5 February 2023 with Hoobastank, Don Broco, Wargasm and
+        SiM on the bill, and that April coldrain supported Papa Roach and The Used across
+        Australia. The live album <i>15x(5+U) Live at Yokohama Arena</i> slipped from April to
+        17 May 2023 when the band could not clear the rights to "Don't Speak". When
+        <i>Bastard!!</i> came back for a second season, coldrain wrote its opening again:
+        "New Dawn", released on 2 August 2023.</p>
+      <p>"Vengeance", the opening theme of Adult Swim's <i>Ninja Kamui</i>, was released on
+        11 February 2024. The night before, at a homecoming show at Nippon Gaishi Hall in
+        Nagoya, the band played it live for the first time and sold it on a CD with a
+        fifteenth anniversary re-recording of <i>Final Destination</i>. Demand was high enough
+        that <i>Final Destination (XV Re:Recorded)</i> went digital on 26 May, and the
+        homecoming show became their sixth live album. <i>Ninja Kamui</i> director Sunghoo
+        Park had given them the brief in a single word.</p>
+      <blockquote class="wk-quote">
+        <p>The first word he gave us, the one that really stuck, was "revenge." So we decided
+          on the title Vengeance right away and started writing from there.</p>
+        <cite>Masato, to Black Screen Records<sup class="ref"><a href="#r7">7</a></sup></cite>
+      </blockquote>
+
+      <h4 id="h-2025">2025 &ndash; present: <i>OPTIMIZE = OPTDEMISE</i></h4>
+      <p>On 18 March 2025 coldrain announced a worldwide deal with the German label Century
+        Media Records, and released "INCOMPLETE" two days later. They played Germany that
+        August, including Summer Breeze, Open Flair and Reload, then toured Europe as
+        headliners from Manchester on 22 November to Frankfurt on 13 December. In between
+        came their fifth EP, <i>OPTIMIZE</i>, on 24 October 2025, carrying the singles
+        "CHASING SHADOWS" and "FREE FALL", plus dates in Taipei and Hong Kong. Blare Fest
+        2026 brought One Ok Rock, SiM, Maximum the Hormone and Memphis May Fire to Nagoya.</p>
+      <p>On 17 July 2026 the band released "EX-HUMANITY" and announced their eighth album,
+        <i>OPTIMIZE = OPTDEMISE</i>, a sequel to the EP, due on 25 September 2026. It is
+        their first album since <i>Vena</i> to get a full worldwide release. The record takes
+        aim at a world where the rise of AI has left people confused about what being human
+        means.</p>
+      <blockquote class="wk-quote">
+        <p>'Ex-Humanity' is a song built on contrast. Musically, it's energetic, powerful and
+          alive. Lyrically, it's intentionally simple, static and full of despair. That
+          contrast reflects the tension between what it means to be human and what we could
+          become if we lose the things that make us who we are.</p>
+        <cite>Masato, via Century Media<sup class="ref"><a href="#r8">8</a></sup></cite>
+      </blockquote>
+      <p>A second single, "POISON", followed on 28 August with Bert McCracken of The Used, a
+        singer the band count among their all-time favourites. The same month, coldrain are
+        opening for Electric Callboy on six Australian arena dates alongside Ice Nine
+        Kills.<sup class="ref"><a href="#r1">1</a></sup></p>
+      <blockquote class="wk-quote">
+        <p>'POISON' is a song about love and desire, about how something, or someone, you love
+          can become so addictive that it's easy to lose yourself in it.</p>
+        <cite>The band, on "POISON"<sup class="ref"><a href="#r9">9</a></sup></cite>
+      </blockquote>
+    </section>
+
+    <section class="wk-sec clear" aria-labelledby="i-artistry">
+      <h3 id="i-artistry">Artistry</h3>
+
+      <h4 id="a-style">Musical style</h4>
+      <p>coldrain's music has been described as post-hardcore, metalcore, alternative metal,
+        alternative rock, nu metal, hard rock and electronic rock, with punk rock and screamo
+        audible in the early material. The first releases leaned towards alternative rock and
+        post-hardcore, over guitar parts that owed a lot to classic metalcore and thrash
+        riffing. By <i>The Revelation</i> the sound had settled into a mix of post-hardcore and
+        metalcore, and critics have compared the band to My Chemical Romance, Pay Money to My
+        Pain, Asking Alexandria, Bullet for My Valentine and A Day to Remember.</p>
+      <p>Masato puts the big choruses down to the Japanese pop the members grew up with:</p>
+      <blockquote class="wk-quote">
+        <p>We always wanted the melodic aspect plus the heavy music. It's cool because I think
+          the Japanese influence towards pop music and the Western-style heavy music is what
+          builds our sound.</p>
+        <cite>Masato, to Mixdown<sup class="ref"><a href="#r6">6</a></sup></cite>
+      </blockquote>
+      <p>Y.K.C. is the main composer and writes most songs with Masato. Asked how he
+        approaches it, he said: "It is essential not to forget 'why a song is cool', the song
+        itself needs to have holding power, and only then is there meaning. That's what I try
+        not to forget when composing."<sup class="ref"><a href="#r1">1</a></sup></p>
+
+      <h4 id="a-influences">Influences</h4>
+      <p>The band came to heavy music through the nu metal boom of the late 1990s. "When we
+        started out we were all big nu-metal fans," Masato told Mixdown.<sup class="ref"><a href="#r6">6</a></sup>
+        He grew up on his older brother's pop and R&amp;B, Michael Jackson and Mariah Carey,
+        next to Japanese acts such as Hikaru Utada and L'Arc-en-Ciel, until a family trip to
+        the United States in 1999 put Limp Bizkit and Korn in front of him on MTV.</p>
+      <p>He has named Linkin Park and Incubus as the bands that made him want to make music,
+        and Chester Bennington and Brandon Boyd as his biggest influences as a singer. He also
+        cites Hoobastank, Papa Roach, Metallica, Pearl Jam, The Used, Silverchair and Slipknot,
+        and has said coldrain would not exist without Sevendust.<sup class="ref"><a href="#r2">2</a></sup></p>
+      <blockquote class="wk-quote big">
+        <p>When I was 15, I visited my grandparents in the US and I went to see Nickelback.
+          Sevendust were supporting them. They just came out jumping around the stage with
+          these heavy, chugging riffs. It was one of the most powerful shows I'd ever seen at
+          the time. That low end just felt good.</p>
+        <cite>Masato, to Louder<sup class="ref"><a href="#r4">4</a></sup></cite>
+      </blockquote>
+      <p>RxYxO has named J, Rikiji, Tim Commerford, Vinnie Hornsby and Sam Rivers as his
+        favourite bassists.</p>
+
+      <h4 id="a-language">Language and scene</h4>
+      <p>Singing in English was rare for a Japanese band when coldrain started. For Masato it
+        was simply more natural: his mother, an English teacher, taught him the language as a
+        child, and he spent his summers in the United States. The band have always printed
+        translated lyrics in their CDs and put subtitles on their videos, but the choice has
+        cost them.</p>
+      <blockquote class="wk-quote">
+        <p>For anime songs especially, people would say, "We'd love to use your song, but it
+          has to be in Japanese." There were cases where we missed out on tie-in deals because
+          our lyrics weren't in Japanese. [...] But in the end, I can only write in English.
+          And that became part of what coldrain is: a Japanese band that sings entirely in
+          English.</p>
+        <cite>Masato, to Black Screen Records<sup class="ref"><a href="#r7">7</a></sup></cite>
+      </blockquote>
+      <p>It also left them without an obvious home. They toured with Japanese punk bands
+        without being part of that scene, and never belonged to J-rock, visual kei or
+        pop.</p>
+      <blockquote class="wk-quote">
+        <p>I think we've taken kids from every other place and connected them together. So, in
+          some ways, we've made a new scene in Japan and I'm hoping it grows.</p>
+        <cite>Masato, to Louder<sup class="ref"><a href="#r3">3</a></sup></cite>
+      </blockquote>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-members">
+      <h3 id="i-members">Band members</h3>
+      <p>The same five people have been in coldrain since 17 April 2007.</p>
+      <div class="member-grid" id="members"></div>
+
+      <h4 id="m-touring">Former touring musicians</h4>
+      <p>Katsuma took several months away in 2012. Three drummers from friends' bands filled
+        in until he returned that November.</p>
+      <div class="wt-wrap" id="tbl-subs"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-discography">
+      <h3 id="i-discography">Discography</h3>
+      <p>coldrain have released seven studio albums, a re-recorded album, six EPs, three
+        maxi-singles, six live albums and two demos, along with around forty digital
+        singles. The eighth album is due in September 2026.</p>
+
+      <h4 id="d-timeline">Timeline</h4>
+      <div class="timeline" id="timeline"></div>
+
+      <h4 id="d-studio">Studio albums</h4>
+      <div class="wt-wrap" id="tbl-studio"></div>
+      <figure class="wk-fig">
+        <div class="chart" id="chart"></div>
+        <figcaption>Peak position on the Oricon albums chart. The scale is compressed towards
+          the top, where the gap between 7 and 15 means more than the gap between 80 and
+          88.</figcaption>
+      </figure>
+
+      <h4 id="d-eps">Extended plays</h4>
+      <div class="wt-wrap" id="tbl-eps"></div>
+
+      <h4 id="d-singles">Maxi-singles</h4>
+      <div class="wt-wrap" id="tbl-maxi"></div>
+
+      <h4 id="d-live">Live albums</h4>
+      <div class="wt-wrap" id="tbl-live"></div>
+
+      <h4 id="d-other">Re-recordings and demos</h4>
+      <div class="wt-wrap" id="tbl-other"></div>
+
+      <h4 id="d-tracks">Track listings</h4>
+      <p class="dimmed">Tap a release to open it. Tracks are in album order, with the
+        OPTIMIZE = OPTDEMISE listing taken from Record Plant.<sup class="ref"><a href="#r10">10</a></sup></p>
+      <div class="disco" id="disco"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-tours">
+      <h3 id="i-tours">Concert tours</h3>
+      <p>Since signing with Raw Power in 2013 the band have left Japan most years, and since
+        2020 they have run their own festival, Blare Fest, at Port Messe Nagoya.</p>
+      <div class="tour-cols">
+        <div>
+          <h4 id="t-headline">Headlining</h4>
+          <ul class="tour-list" id="tours-head"></ul>
+        </div>
+        <div>
+          <h4 id="t-support">Supporting</h4>
+          <ul class="tour-list" id="tours-support"></ul>
+        </div>
+      </div>
+      <h4 id="t-festivals">Notable festival appearances</h4>
+      <div class="fest-grid" id="fests"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-media">
+      <h3 id="i-media">In other media</h3>
+      <p>A good part of the catalogue reached people through anime, games and television
+        before it reached them on record. Masato used to think of anime songs as something
+        apart from real artist music, and changed his mind: "since anime itself lasts
+        forever, the music tied to it also gets remembered."<sup class="ref"><a href="#r7">7</a></sup></p>
+      <div class="wt-wrap" id="tbl-media"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-collabs">
+      <h3 id="i-collabs">Collaborations</h3>
+
+      <h4 id="c-guests">Guests on coldrain songs</h4>
+      <div class="guest-list" id="guests"></div>
+
+      <h4 id="c-features">Members as guests</h4>
+      <p>Masato in particular turns up on other people's records a lot, including One Ok
+        Rock's "Renegades", which he co-wrote with Ed Sheeran for <i>Rurouni Kenshin: The
+        Final</i>.<sup class="ref"><a href="#r2">2</a></sup></p>
+      <div class="wt-wrap" id="tbl-features"></div>
+
+      <h4 id="c-covers">Covers</h4>
+      <div class="wt-wrap" id="tbl-covers"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-awards">
+      <h3 id="i-awards">Awards and nominations</h3>
+      <div class="wt-wrap" id="tbl-awards"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-trivia">
+      <h3 id="i-trivia">Trivia</h3>
+      <div class="trivia-grid" id="trivia"></div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-refs">
+      <h3 id="i-refs">References</h3>
+      <ol class="ref-list">
+        <li id="r1"><a href="https://en.wikipedia.org/wiki/Coldrain" target="_blank" rel="noopener">"Coldrain"</a>. <i>Wikipedia</i>. The history, discography, tours and awards on this page are adapted from this article.</li>
+        <li id="r2"><a href="https://en.wikipedia.org/wiki/Masato_Hayakawa" target="_blank" rel="noopener">"Masato Hayakawa"</a>. <i>Wikipedia</i>.</li>
+        <li id="r3"><a href="https://www.loudersound.com/features/new-metal-revolution-coldrain-the-rising-sons" target="_blank" rel="noopener">"New Metal Revolution: Coldrain, The Rising Sons"</a>. <i>Louder</i>, 27 February 2015.</li>
+        <li id="r4"><a href="https://www.loudersound.com/features/the-nine-best-nu-metal-singles-by-coldrain-s-masato-david-hayakawa" target="_blank" rel="noopener">"The nine best nu metal singles by Coldrain's Masato David Hayakawa"</a>. <i>Louder</i>, 12 November 2015.</li>
+        <li id="r5"><a href="https://www.loudersound.com/features/welcome-back-coldrain" target="_blank" rel="noopener">"Welcome Back: Coldrain"</a>. <i>Louder</i>.</li>
+        <li id="r6"><a href="https://mixdownmag.com.au/features/interviews/coldrain/" target="_blank" rel="noopener">"Coldrain"</a>. <i>Mixdown Magazine</i>, 2014.</li>
+        <li id="r7"><a href="https://blackscreenrecords.com/blogs/news/coldrain-interview" target="_blank" rel="noopener">"Coldrain Interview"</a>. <i>Black Screen Records</i>.</li>
+        <li id="r8"><a href="https://blabbermouth.net/news/coldrain-announces-new-album-optimize-optdemise-releases-ex-humanity-single" target="_blank" rel="noopener">"Coldrain announces new album 'Optimize = Optdemise', releases 'Ex-Humanity' single"</a>. <i>Blabbermouth.net</i>, July 2026.</li>
+        <li id="r9"><a href="https://electricbloomwebzine.com/2026/08/coldrain-poison-bert-mccracken.html" target="_blank" rel="noopener">"coldrain team with Masato's longtime influence Bert McCracken on 'POISON'"</a>. <i>Electric Bloom Webzine</i>, August 2026.</li>
+        <li id="r10"><a href="https://www.recordplant.co.uk/products/coldrain-optimize-optdemise" target="_blank" rel="noopener">"coldrain: OPTIMIZE = OPTDEMISE"</a>. <i>Record Plant</i>. Track listing.</li>
+      </ol>
+      <div class="wk-notes">
+        <p>Text adapted from Wikipedia is available under the
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">Creative Commons Attribution-ShareAlike 4.0</a>
+          licence, and it has been reworded, shortened and reordered here. If something
+          is wrong, the GitHub link below is the fastest way to get it fixed.</p>
+        <p>The head-to-head sort behind the ranking is adapted from
+          <a href="https://github.com/sakurasort/sakurasort.github.io" target="_blank" rel="noopener">Sakura Sort</a>.
+          Unofficial fan project, not affiliated with coldrain or their label. All artwork
+          belongs to its respective owners.</p>
+      </div>
+    </section>
+
+    <section class="wk-sec" aria-labelledby="i-links">
+      <h3 id="i-links">External links</h3>
+      <div class="link-list">
+        <p class="link-heading">This site</p>
+        <a class="link-row" href="https://github.com/IustinPro/coldrain-song-sorter" target="_blank" rel="noopener">
+          <span class="link-name">GitHub</span>
+          <span class="link-note">Source code, and where to report a mistake</span>
+        </a>
+        <a class="link-row" href="https://discord.gg/dRbCy4eTPg" target="_blank" rel="noopener">
+          <span class="link-name">Discord</span>
+          <span class="link-note">The fan-run coldrain server, not mine</span>
+        </a>
+        <a class="link-row" href="https://www.reddit.com/r/coldrain_jp/" target="_blank" rel="noopener">
+          <span class="link-name">r/coldrain_jp</span>
+          <span class="link-note">The fan subreddit</span>
+        </a>
+
+        <p class="link-heading">Official</p>
+        <a class="link-row" href="https://coldrain.jp/" target="_blank" rel="noopener">
+          <span class="link-name">coldrain.jp</span><span class="link-note">The band's own site</span>
+        </a>
+        <a class="link-row" href="https://twitter.com/coldrain_jp" target="_blank" rel="noopener">
+          <span class="link-name">X</span><span class="link-note">@coldrain_jp</span>
+        </a>
+        <a class="link-row" href="https://www.instagram.com/coldrain_official/" target="_blank" rel="noopener">
+          <span class="link-name">Instagram</span><span class="link-note">@coldrain_official</span>
+        </a>
+        <a class="link-row" href="https://www.youtube.com/@coldrain_official" target="_blank" rel="noopener">
+          <span class="link-name">YouTube</span><span class="link-note">@coldrain_official</span>
+        </a>
+        <a class="link-row" href="https://www.tiktok.com/@coldrain_official" target="_blank" rel="noopener">
+          <span class="link-name">TikTok</span><span class="link-note">@coldrain_official</span>
+        </a>
+        <a class="link-row" href="https://www.facebook.com/coldrainofficial/" target="_blank" rel="noopener">
+          <span class="link-name">Facebook</span><span class="link-note">coldrainofficial</span>
+        </a>
+        <a class="link-row" href="https://collectivejp.com" target="_blank" rel="noopener">
+          <span class="link-name">Collective</span><span class="link-note">Official merch store</span>
+        </a>
+        <a class="link-row" href="https://blarefest.com" target="_blank" rel="noopener">
+          <span class="link-name">Blare Fest</span><span class="link-note">The festival they run</span>
+        </a>
+
+        <p class="link-heading">Listen and read</p>
+        <a class="link-row" href="https://open.spotify.com/artist/4pCVGaLWxDe4d8bsjsnmUM" target="_blank" rel="noopener">
+          <span class="link-name">Spotify</span><span class="link-note">Full discography</span>
+        </a>
+        <a class="link-row" href="https://music.apple.com/jp/artist/coldrain/294914748" target="_blank" rel="noopener">
+          <span class="link-name">Apple Music</span><span class="link-note">Full discography</span>
+        </a>
+        <a class="link-row" href="https://en.wikipedia.org/wiki/Coldrain" target="_blank" rel="noopener">
+          <span class="link-name">Wikipedia</span><span class="link-note">Where most of this page comes from</span>
+        </a>
+      </div>
+    </section>
+
+    </article>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p class="footer-note">
+      Unofficial fan project. Not affiliated with coldrain or their label.
+      All artwork belongs to its respective owners.
+    </p>
+  </footer>
+
+  <nav class="bottom-nav">
+    <button class="bn-item active" data-view="home" onclick="showView('home')">
+      <span class="bn-icon">&#127968;</span><span class="bn-label">Home</span>
+    </button>
+    <button class="bn-item" data-view="sorter" onclick="showView('sorter')">
+      <span class="bn-icon">&#127925;</span><span class="bn-label">Rank</span>
+    </button>
+    <button class="bn-item" data-view="songguess" onclick="showView('songguess')">
+      <span class="bn-icon">&#128191;</span><span class="bn-label">Songs</span>
+    </button>
+    <button class="bn-item" data-view="info" onclick="showView('info')">
+      <span class="bn-icon">&#8505;</span><span class="bn-label">Info</span>
+    </button>
+    <button class="bn-item" data-view="profile" onclick="showView('profile')">
+      <span class="bn-icon">&#128100;</span><span class="bn-label">Profile</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/sorter.js"></script>
+<script src="js/songguess.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/tips.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
